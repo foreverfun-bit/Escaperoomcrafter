@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { loadData, saveData, downloadJSON, parseImportedJSON, emptyData } from './storage';
+import { ZONE_PALETTE } from './constants';
 
 const RoomsContext = createContext(null);
 
@@ -50,6 +51,9 @@ export function RoomsProvider({ children }) {
       props: d.props.filter((p) => p.roomId !== id),
       zones: d.zones.filter((z) => z.roomId !== id),
       tasks: d.tasks.filter((t) => t.roomId !== id),
+      brainstormIdeas: d.brainstormIdeas.filter((i) => i.roomId !== id),
+      brainstormConnections: d.brainstormConnections.filter((c) => c.roomId !== id),
+      brainstormPaths: d.brainstormPaths.filter((p) => p.roomId !== id),
       version: d.version,
     }));
   }, []);
@@ -109,6 +113,13 @@ export function RoomsProvider({ children }) {
       source: '',
       puzzleIds: [],
       notes: '',
+      // Interior-designer placement (optional): a prop can be tracked for
+      // sourcing/budget here AND positioned inside a zone's floor plan.
+      zoneId: null,
+      x: null,
+      y: null,
+      w: null,
+      h: null,
       createdAt: now(),
       updatedAt: now(),
       ...partial,
@@ -132,19 +143,26 @@ export function RoomsProvider({ children }) {
     }));
   }, []);
 
-  // ---------- Zones (layout) ----------
+  // ---------- Zones (spatial layout) ----------
   const addZone = useCallback((roomId, partial) => {
     const id = makeId();
     setData((d) => {
       const roomZones = d.zones.filter((z) => z.roomId === roomId);
       const maxOrder = roomZones.reduce((m, z) => Math.max(m, z.order ?? 0), -1);
+      const cascade = roomZones.length;
       const zone = {
         id,
         roomId,
         name: 'Untitled Zone',
         description: '',
-        order: maxOrder + 1,
         notes: '',
+        order: maxOrder + 1,
+        // Floor-plan placement, percentage of the blueprint canvas.
+        x: 6 + ((cascade * 9) % 60),
+        y: 8 + ((cascade * 11) % 58),
+        w: 30,
+        h: 28,
+        color: ZONE_PALETTE[cascade % ZONE_PALETTE.length],
         createdAt: now(),
         updatedAt: now(),
         ...partial,
@@ -166,6 +184,7 @@ export function RoomsProvider({ children }) {
       ...d,
       zones: d.zones.filter((z) => z.id !== id),
       puzzles: d.puzzles.map((p) => (p.zoneId === id ? { ...p, zoneId: null } : p)),
+      props: d.props.map((p) => (p.zoneId === id ? { ...p, zoneId: null, x: null, y: null, w: null, h: null } : p)),
     }));
   }, []);
 
@@ -225,6 +244,114 @@ export function RoomsProvider({ children }) {
     setData((d) => ({ ...d, tasks: d.tasks.filter((t) => t.id !== id) }));
   }, []);
 
+  // ---------- Brainstorm board ----------
+  const addIdea = useCallback((roomId, partial) => {
+    const id = makeId();
+    const idea = {
+      id,
+      roomId,
+      boardType: 'sticky',
+      title: '',
+      notes: '',
+      keeper: false,
+      convertedPuzzleId: null,
+      x: 6,
+      y: 8,
+      w: 240,
+      h: 200,
+      color: '#f5d76e',
+      fontSize: 14,
+      shapeKind: 'rounded',
+      createdAt: now(),
+      updatedAt: now(),
+      ...partial,
+    };
+    setData((d) => ({ ...d, brainstormIdeas: [...d.brainstormIdeas, idea] }));
+    return id;
+  }, []);
+
+  const updateIdea = useCallback((id, patch) => {
+    setData((d) => ({
+      ...d,
+      brainstormIdeas: d.brainstormIdeas.map((idea) => (idea.id === id ? { ...idea, ...patch, updatedAt: now() } : idea)),
+    }));
+  }, []);
+
+  const deleteIdea = useCallback((id) => {
+    setData((d) => ({
+      ...d,
+      brainstormIdeas: d.brainstormIdeas.filter((idea) => idea.id !== id),
+      brainstormConnections: d.brainstormConnections.filter((c) => c.from !== id && c.to !== id),
+    }));
+  }, []);
+
+  const addConnection = useCallback((roomId, from, to) => {
+    setData((d) => {
+      const exists = d.brainstormConnections.some(
+        (c) => (c.from === from && c.to === to) || (c.from === to && c.to === from),
+      );
+      if (exists || from === to) return d;
+      return {
+        ...d,
+        brainstormConnections: [...d.brainstormConnections, { id: makeId(), roomId, from, to }],
+      };
+    });
+  }, []);
+
+  const deleteConnection = useCallback((id) => {
+    setData((d) => ({ ...d, brainstormConnections: d.brainstormConnections.filter((c) => c.id !== id) }));
+  }, []);
+
+  const addPath = useCallback((roomId, partial) => {
+    const id = makeId();
+    setData((d) => ({
+      ...d,
+      brainstormPaths: [...d.brainstormPaths, { id, roomId, points: '', color: '#2a2320', width: 3, ...partial }],
+    }));
+    return id;
+  }, []);
+
+  const updatePath = useCallback((id, patch) => {
+    setData((d) => ({
+      ...d,
+      brainstormPaths: d.brainstormPaths.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+    }));
+  }, []);
+
+  const deletePath = useCallback((id) => {
+    setData((d) => ({ ...d, brainstormPaths: d.brainstormPaths.filter((p) => p.id !== id) }));
+  }, []);
+
+  const convertIdeaToPuzzle = useCallback((id) => {
+    let newPuzzleId = null;
+    setData((d) => {
+      const idea = d.brainstormIdeas.find((i) => i.id === id);
+      if (!idea || idea.convertedPuzzleId) return d;
+      newPuzzleId = makeId();
+      const puzzle = {
+        id: newPuzzleId,
+        roomId: idea.roomId,
+        name: idea.title || idea.notes.slice(0, 40) || 'Untitled Puzzle',
+        description: idea.notes || '',
+        type: 'Logic',
+        solution: '',
+        hints: [],
+        dependsOn: [],
+        zoneId: null,
+        status: 'Idea',
+        notes: '',
+        createdAt: now(),
+        updatedAt: now(),
+      };
+      return {
+        ...d,
+        puzzles: [...d.puzzles, puzzle],
+        brainstormIdeas: d.brainstormIdeas.map((i) => (i.id === id ? { ...i, convertedPuzzleId: newPuzzleId, keeper: true } : i)),
+      };
+    });
+    return newPuzzleId;
+  }, []);
+
   // ---------- Backup / restore ----------
   const exportAll = useCallback(() => {
     downloadJSON(data);
@@ -258,6 +385,15 @@ export function RoomsProvider({ children }) {
       addTask,
       updateTask,
       deleteTask,
+      addIdea,
+      updateIdea,
+      deleteIdea,
+      addConnection,
+      deleteConnection,
+      addPath,
+      updatePath,
+      deletePath,
+      convertIdeaToPuzzle,
       exportAll,
       importAll,
       resetAll,
@@ -280,6 +416,15 @@ export function RoomsProvider({ children }) {
       addTask,
       updateTask,
       deleteTask,
+      addIdea,
+      updateIdea,
+      deleteIdea,
+      addConnection,
+      deleteConnection,
+      addPath,
+      updatePath,
+      deletePath,
+      convertIdeaToPuzzle,
       exportAll,
       importAll,
       resetAll,
@@ -323,6 +468,26 @@ export function useZones(roomId) {
 export function useTasks(roomId) {
   const { data } = useRooms();
   return useMemo(() => data.tasks.filter((t) => t.roomId === roomId), [data.tasks, roomId]);
+}
+
+export function useIdeas(roomId) {
+  const { data } = useRooms();
+  return useMemo(() => data.brainstormIdeas.filter((i) => i.roomId === roomId), [data.brainstormIdeas, roomId]);
+}
+
+export function useConnections(roomId) {
+  const { data } = useRooms();
+  return useMemo(() => data.brainstormConnections.filter((c) => c.roomId === roomId), [data.brainstormConnections, roomId]);
+}
+
+export function usePaths(roomId) {
+  const { data } = useRooms();
+  return useMemo(() => data.brainstormPaths.filter((p) => p.roomId === roomId), [data.brainstormPaths, roomId]);
+}
+
+export function usePropsInZone(zoneId) {
+  const { data } = useRooms();
+  return useMemo(() => data.props.filter((p) => p.zoneId === zoneId), [data.props, zoneId]);
 }
 
 export function useRoomProgress(roomId) {

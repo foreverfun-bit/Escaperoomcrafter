@@ -3,15 +3,19 @@ import Modal from './ui/Modal.jsx';
 import Button from './ui/Button.jsx';
 import { TextField, TextArea } from './ui/Field.jsx';
 import MultiSelect from './ui/MultiSelect.jsx';
+import { ZONE_PALETTE } from '../store/constants.js';
 
-const BLANK = { name: '', description: '', puzzleIds: [], notes: '' };
+const BLANK = { name: '', description: '', puzzleIds: [], notes: '', color: ZONE_PALETTE[0] };
 
-export default function ZoneFormModal({ open, onClose, onSubmit, initial, puzzles }) {
+export default function ZoneFormModal({ open, onClose, onSubmit, initial, puzzles, defaultColor }) {
+  const isEdit = Boolean(initial?.id);
   const [form, setForm] = useState(BLANK);
 
   useEffect(() => {
-    if (open) setForm(initial ? { ...BLANK, ...initial } : BLANK);
-  }, [open, initial]);
+    if (!open) return;
+    if (isEdit) setForm({ ...BLANK, ...initial });
+    else setForm({ ...BLANK, color: defaultColor || ZONE_PALETTE[0] });
+  }, [open, initial, isEdit, defaultColor]);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
@@ -26,13 +30,13 @@ export default function ZoneFormModal({ open, onClose, onSubmit, initial, puzzle
     <Modal
       open={open}
       onClose={onClose}
-      title={initial ? 'Edit zone' : 'New zone'}
+      title={isEdit ? 'Edit zone' : 'New zone'}
       footer={
         <>
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>{initial ? 'Save changes' : 'Add zone'}</Button>
+          <Button onClick={handleSubmit}>{isEdit ? 'Save changes' : 'Add zone'}</Button>
         </>
       }
     >
@@ -46,6 +50,21 @@ export default function ZoneFormModal({ open, onClose, onSubmit, initial, puzzle
           autoFocus
         />
         <TextArea label="Description" value={form.description} onChange={set('description')} />
+        <div>
+          <label className="mb-1 block text-xs font-medium text-stone-400">Color</label>
+          <div className="flex flex-wrap gap-1.5">
+            {ZONE_PALETTE.map((color) => (
+              <button
+                key={color}
+                type="button"
+                onClick={() => setForm((f) => ({ ...f, color }))}
+                aria-label={`Set color ${color}`}
+                className={`h-7 w-7 rounded-full border-2 ${form.color === color ? 'border-pink-400' : 'border-stone-700'}`}
+                style={{ background: color }}
+              />
+            ))}
+          </div>
+        </div>
         <MultiSelect
           label="Puzzles in this zone"
           options={puzzles.map((p) => ({ value: p.id, label: p.name }))}

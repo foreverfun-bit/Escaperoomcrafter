@@ -30,3 +30,42 @@ body {
   background-color: #57534e;
   border-radius: 999px;
 }
+
+/* ---------- Brainstorm board ---------- */
+
+.board-canvas {
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.editable-text {
+  outline: none;
+  overflow-wrap: anywhere;
+  cursor: text;
+}
+
+.editable-text[data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.board-sticky {
+  position: relative;
+}
+
+.board-sticky::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, transparent 50%, rgba(0, 0, 0, 0.18) 50%);
+  border-radius: 0 0 4px 0;
+  pointer-events: none;
+}
+
+.board-shape-diamond {
+  clip-path: polygon(50% 2%, 98% 50%, 50% 98%, 2% 50%);
+}

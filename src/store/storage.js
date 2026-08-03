@@ -7,6 +7,9 @@ export const emptyData = () => ({
   props: [],
   zones: [],
   tasks: [],
+  brainstormIdeas: [],
+  brainstormConnections: [],
+  brainstormPaths: [],
 });
 
 export function loadData() {
