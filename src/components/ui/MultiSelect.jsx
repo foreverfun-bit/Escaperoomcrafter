@@ -20,7 +20,7 @@ export default function MultiSelect({ label, options, selected, onChange, emptyT
                 type="checkbox"
                 checked={selected.includes(opt.value)}
                 onChange={() => toggle(opt.value)}
-                className="accent-amber-500"
+                className="accent-pink-400"
               />
               {opt.label}
             </label>

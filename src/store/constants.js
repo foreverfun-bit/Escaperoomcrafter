@@ -37,25 +37,25 @@ export const STATUS_COLORS = {
   // room statuses
   Concept: 'bg-stone-700 text-stone-200',
   Designing: 'bg-sky-500/20 text-sky-300',
-  Building: 'bg-amber-500/20 text-amber-300',
+  Building: 'bg-pink-400/20 text-pink-200',
   Testing: 'bg-violet-500/20 text-violet-300',
   Live: 'bg-emerald-500/20 text-emerald-300',
   // puzzle statuses
   Idea: 'bg-stone-700 text-stone-200',
-  Prototyping: 'bg-amber-500/20 text-amber-300',
+  Prototyping: 'bg-pink-400/20 text-pink-200',
   Built: 'bg-sky-500/20 text-sky-300',
   Tested: 'bg-emerald-500/20 text-emerald-300',
   // sourcing statuses
   'Need to source': 'bg-rose-500/20 text-rose-300',
-  Ordered: 'bg-amber-500/20 text-amber-300',
+  Ordered: 'bg-pink-400/20 text-pink-200',
   Acquired: 'bg-emerald-500/20 text-emerald-300',
   'Needs building': 'bg-sky-500/20 text-sky-300',
   // task statuses
   'To Do': 'bg-stone-700 text-stone-200',
-  'In Progress': 'bg-amber-500/20 text-amber-300',
+  'In Progress': 'bg-pink-400/20 text-pink-200',
   Done: 'bg-emerald-500/20 text-emerald-300',
   // priority
   Low: 'bg-stone-700 text-stone-200',
-  Medium: 'bg-amber-500/20 text-amber-300',
+  Medium: 'bg-pink-400/20 text-pink-200',
   High: 'bg-rose-500/20 text-rose-300',
 };

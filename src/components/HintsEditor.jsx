@@ -23,7 +23,7 @@ export default function HintsEditor({ hints, onChange }) {
             <GripVertical size={14} className="shrink-0 text-stone-600" />
             <span className="w-5 shrink-0 text-xs text-stone-500">{idx + 1}.</span>
             <input
-              className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-1.5 text-sm text-stone-100 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
+              className="w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-1.5 text-sm text-stone-100 outline-none focus:border-pink-400 focus:ring-1 focus:ring-pink-400"
               value={hint}
               onChange={(e) => update(idx, e.target.value)}
               placeholder={`Hint ${idx + 1}`}

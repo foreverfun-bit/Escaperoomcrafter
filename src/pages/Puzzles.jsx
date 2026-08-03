@@ -101,7 +101,7 @@ export default function Puzzles() {
                           <ArrowRight size={12} />
                           <span>Unlocks:</span>
                           {unlocks.map((u) => (
-                            <span key={u.id} className="rounded-full bg-amber-500/10 px-2 py-0.5 text-amber-300">
+                            <span key={u.id} className="rounded-full bg-pink-400/10 px-2 py-0.5 text-pink-200">
                               {u.name}
                             </span>
                           ))}

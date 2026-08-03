@@ -82,7 +82,7 @@ export default function Layout() {
                 <CardBody>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex gap-3">
-                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-xs font-semibold text-amber-400">
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-pink-400/15 text-xs font-semibold text-pink-300">
                         {idx + 1}
                       </span>
                       <div>

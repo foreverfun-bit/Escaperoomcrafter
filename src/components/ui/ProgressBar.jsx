@@ -4,7 +4,7 @@ export default function ProgressBar({ value = 0, total = 0, className = '' }) {
     <div className={className}>
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-stone-800">
         <div
-          className="h-full rounded-full bg-amber-500 transition-all"
+          className="h-full rounded-full bg-pink-400 transition-all"
           style={{ width: `${pct}%` }}
         />
       </div>

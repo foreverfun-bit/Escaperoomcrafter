@@ -101,7 +101,7 @@ export default function Tasks() {
                           )}
                         </div>
                         {(puzzleName(t.linkedPuzzleId) || propName(t.linkedPropId)) && (
-                          <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] text-amber-300/80">
+                          <div className="mt-1.5 flex flex-wrap gap-1.5 text-[11px] text-pink-200/80">
                             {puzzleName(t.linkedPuzzleId) && <span>🧩 {puzzleName(t.linkedPuzzleId)}</span>}
                             {propName(t.linkedPropId) && <span>📦 {propName(t.linkedPropId)}</span>}
                           </div>

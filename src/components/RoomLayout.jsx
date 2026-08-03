@@ -23,7 +23,7 @@ export default function RoomLayout() {
           title="Room not found"
           description="This room may have been deleted."
           action={
-            <Link to="/rooms" className="text-sm text-amber-400 hover:underline">
+            <Link to="/rooms" className="text-sm text-pink-300 hover:underline">
               Back to all rooms
             </Link>
           }
@@ -57,7 +57,7 @@ export default function RoomLayout() {
               className={({ isActive }) =>
                 `flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-colors lg:shrink ${
                   isActive
-                    ? 'bg-amber-500/15 text-amber-300'
+                    ? 'bg-pink-400/15 text-pink-200'
                     : 'text-stone-400 hover:bg-stone-800 hover:text-stone-100'
                 }`
               }

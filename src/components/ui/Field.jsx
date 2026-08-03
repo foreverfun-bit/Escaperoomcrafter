@@ -1,5 +1,5 @@
 const baseInput =
-  'w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2 text-sm text-stone-100 placeholder:text-stone-500 outline-none transition-colors focus:border-amber-500 focus:ring-1 focus:ring-amber-500';
+  'w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2 text-sm text-stone-100 placeholder:text-stone-500 outline-none transition-colors focus:border-pink-400 focus:ring-1 focus:ring-pink-400';
 
 function Label({ label, required }) {
   if (!label) return null;

@@ -86,7 +86,7 @@ export default function RoomOverview() {
         <CardBody>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-stone-200">Up next</h2>
-            <Link to="tasks" className="text-xs font-medium text-amber-400 hover:underline">
+            <Link to="tasks" className="text-xs font-medium text-pink-300 hover:underline">
               View all tasks
             </Link>
           </div>
