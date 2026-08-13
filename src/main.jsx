@@ -14,3 +14,11 @@ createRoot(document.getElementById('root')).render(
     </HashRouter>
   </StrictMode>,
 )
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch((err) => {
+      console.error('Service worker registration failed', err)
+    })
+  })
+}

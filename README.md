@@ -4,6 +4,16 @@ A design and organization tool for building physical escape rooms. Track a
 portfolio of rooms, each with its own puzzle chain, prop/inventory list,
 zone-by-zone layout, and build task board.
 
+## Live app
+
+**https://foreverfun-bit.github.io/Escaperoomcrafter/**
+
+Open that link on a phone, tablet, or desktop. It's a installable PWA: on
+iPad/iPhone use Safari's Share → **Add to Home Screen**; on Android/Chrome
+use the browser menu → **Install app** (or the install icon in the address
+bar). Once installed it opens full-screen with its own icon and keeps
+working offline — all your data lives on that device, not a server.
+
 All data is saved locally in your browser (`localStorage`) — no account, no
 server. Use the **Backup** button in the header to export/import a JSON
 snapshot, which is also how you'd move your data to another browser or
