@@ -2,10 +2,12 @@ import { useOutletContext } from 'react-router-dom';
 import { useState } from 'react';
 import { Lightbulb, Eraser, LayoutGrid } from 'lucide-react';
 import { useRooms, useBoards, useIdeas, useConnections, usePaths } from '../store/RoomsContext.jsx';
+import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
 import { BOARD_SWATCHES } from '../store/constants.js';
 import Button from '../components/ui/Button.jsx';
 import { Card, CardBody } from '../components/ui/Card.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
+import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
 import BoardTabs from '../components/brainstorm/BoardTabs.jsx';
 import ToolRail from '../components/brainstorm/ToolRail.jsx';
 import BoardCanvas from '../components/brainstorm/BoardCanvas.jsx';
@@ -30,6 +32,7 @@ export default function Brainstorm() {
     convertIdeaToPuzzle,
   } = useRooms();
   const boards = useBoards(room.id);
+  const { requestConfirm, dialogProps } = useConfirmDialog();
 
   const [activeBoardId, setActiveBoardId] = useState(null);
   const activeBoard = boards.find((b) => b.id === activeBoardId) || boards[0] || null;
@@ -55,17 +58,29 @@ export default function Brainstorm() {
   };
 
   const handleDeleteBoard = (board) => {
-    if (!window.confirm(`Delete "${board.name}"? All its notes and connections will be lost.`)) return;
-    deleteBoard(board.id);
-    if (activeBoardId === board.id) setActiveBoardId(null);
-    setSelection(null);
+    requestConfirm({
+      title: 'Delete board',
+      message: `Delete "${board.name}"? All its notes and connections will be lost.`,
+      confirmLabel: 'Delete board',
+      onConfirm: () => {
+        deleteBoard(board.id);
+        if (activeBoardId === board.id) setActiveBoardId(null);
+        setSelection(null);
+      },
+    });
   };
 
   const handleClearBoard = () => {
     if (!activeBoard) return;
-    if (!window.confirm(`Clear everything on "${activeBoard.name}"? This can't be undone.`)) return;
-    clearBoard(activeBoard.id);
-    setSelection(null);
+    requestConfirm({
+      title: 'Clear board',
+      message: `Clear everything on "${activeBoard.name}"? This can't be undone.`,
+      confirmLabel: 'Clear board',
+      onConfirm: () => {
+        clearBoard(activeBoard.id);
+        setSelection(null);
+      },
+    });
   };
 
   const handleCreateAt = (x, y) => {
@@ -246,6 +261,8 @@ export default function Brainstorm() {
           </div>
         </>
       )}
+
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }

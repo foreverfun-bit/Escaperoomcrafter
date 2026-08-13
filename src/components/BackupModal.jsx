@@ -2,12 +2,15 @@ import { useRef, useState } from 'react';
 import { Download, Upload, Trash2 } from 'lucide-react';
 import Modal from './ui/Modal.jsx';
 import Button from './ui/Button.jsx';
+import ConfirmDialog from './ui/ConfirmDialog.jsx';
 import { useRooms } from '../store/RoomsContext.jsx';
+import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
 
 export default function BackupModal({ open, onClose }) {
   const { exportAll, importAll, resetAll } = useRooms();
   const fileInputRef = useRef(null);
   const [error, setError] = useState('');
+  const { requestConfirm, dialogProps } = useConfirmDialog();
 
   const handleImportClick = () => fileInputRef.current?.click();
 
@@ -17,14 +20,15 @@ export default function BackupModal({ open, onClose }) {
     setError('');
     try {
       const text = await file.text();
-      if (
-        window.confirm(
-          'Importing will replace ALL current data in this browser with the contents of the backup file. Continue?',
-        )
-      ) {
-        importAll(text);
-        onClose();
-      }
+      requestConfirm({
+        title: 'Import backup',
+        message: 'Importing will replace ALL current data in this browser with the contents of the backup file. Continue?',
+        confirmLabel: 'Import & replace',
+        onConfirm: () => {
+          importAll(text);
+          onClose();
+        },
+      });
     } catch (err) {
       setError(err.message || 'Could not read that file.');
     } finally {
@@ -33,14 +37,16 @@ export default function BackupModal({ open, onClose }) {
   };
 
   const handleReset = () => {
-    if (
-      window.confirm(
+    requestConfirm({
+      title: 'Erase all data',
+      message:
         'This will permanently delete every room, puzzle, prop, layout zone, and task stored in this browser. Export a backup first if you want to keep it. Continue?',
-      )
-    ) {
-      resetAll();
-      onClose();
-    }
+      confirmLabel: 'Erase everything',
+      onConfirm: () => {
+        resetAll();
+        onClose();
+      },
+    });
   };
 
   return (
@@ -78,6 +84,8 @@ export default function BackupModal({ open, onClose }) {
           </Button>
         </div>
       </div>
+
+      <ConfirmDialog {...dialogProps} />
     </Modal>
   );
 }

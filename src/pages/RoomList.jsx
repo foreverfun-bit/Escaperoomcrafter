@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Plus, DoorOpen } from 'lucide-react';
 import { useRooms } from '../store/RoomsContext.jsx';
+import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
 import Button from '../components/ui/Button.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
+import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
 import RoomCard from '../components/RoomCard.jsx';
 import RoomFormModal from '../components/RoomFormModal.jsx';
 
@@ -10,6 +12,7 @@ export default function RoomList() {
   const { data, addRoom, updateRoom, deleteRoom } = useRooms();
   const [formOpen, setFormOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
+  const { requestConfirm, dialogProps } = useConfirmDialog();
 
   const openCreate = () => {
     setEditingRoom(null);
@@ -27,9 +30,12 @@ export default function RoomList() {
   };
 
   const handleDelete = (room) => {
-    if (window.confirm(`Delete "${room.name}" and all of its puzzles, props, layout, and tasks?`)) {
-      deleteRoom(room.id);
-    }
+    requestConfirm({
+      title: 'Delete room',
+      message: `Delete "${room.name}" and all of its puzzles, props, layout, and tasks?`,
+      confirmLabel: 'Delete room',
+      onConfirm: () => deleteRoom(room.id),
+    });
   };
 
   return (
@@ -73,6 +79,8 @@ export default function RoomList() {
         onSubmit={handleSubmit}
         initial={editingRoom}
       />
+
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }

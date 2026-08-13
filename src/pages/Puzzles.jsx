@@ -2,10 +2,12 @@ import { useOutletContext } from 'react-router-dom';
 import { useState } from 'react';
 import { Plus, Puzzle as PuzzleIcon, Pencil, Trash2, Lightbulb, ArrowRight } from 'lucide-react';
 import { useRooms, usePuzzles, useZones } from '../store/RoomsContext.jsx';
+import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
 import Button from '../components/ui/Button.jsx';
 import { Card, CardBody } from '../components/ui/Card.jsx';
 import Badge from '../components/ui/Badge.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
+import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
 import PuzzleFormModal from '../components/PuzzleFormModal.jsx';
 
 export default function Puzzles() {
@@ -15,6 +17,7 @@ export default function Puzzles() {
   const zones = useZones(room.id);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const { requestConfirm, dialogProps } = useConfirmDialog();
 
   const puzzleName = (id) => puzzles.find((p) => p.id === id)?.name || 'Unknown';
   const zoneName = (id) => zones.find((z) => z.id === id)?.name;
@@ -33,9 +36,12 @@ export default function Puzzles() {
     else addPuzzle(room.id, values);
   };
   const handleDelete = (p) => {
-    if (window.confirm(`Delete puzzle "${p.name}"? This removes it from any chains, zones, and props.`)) {
-      deletePuzzle(p.id);
-    }
+    requestConfirm({
+      title: 'Delete puzzle',
+      message: `Delete puzzle "${p.name}"? This removes it from any chains, zones, and props.`,
+      confirmLabel: 'Delete',
+      onConfirm: () => deletePuzzle(p.id),
+    });
   };
 
   return (
@@ -138,6 +144,8 @@ export default function Puzzles() {
         zones={zones}
         otherPuzzles={puzzles.filter((p) => p.id !== editing?.id)}
       />
+
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }

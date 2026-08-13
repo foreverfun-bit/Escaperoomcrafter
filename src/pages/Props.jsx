@@ -2,10 +2,12 @@ import { useOutletContext } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { Plus, Package, Pencil, Trash2 } from 'lucide-react';
 import { useRooms, useProps, usePuzzles, useZones } from '../store/RoomsContext.jsx';
+import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
 import Button from '../components/ui/Button.jsx';
 import { Card } from '../components/ui/Card.jsx';
 import Badge from '../components/ui/Badge.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
+import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
 import PropFormModal from '../components/PropFormModal.jsx';
 
 export default function Props() {
@@ -16,6 +18,7 @@ export default function Props() {
   const zones = useZones(room.id);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const { requestConfirm, dialogProps } = useConfirmDialog();
 
   const puzzleName = (id) => puzzles.find((p) => p.id === id)?.name || 'Unknown';
   const zoneName = (id) => zones.find((z) => z.id === id)?.name || null;
@@ -39,7 +42,12 @@ export default function Props() {
     else addProp(room.id, values);
   };
   const handleDelete = (p) => {
-    if (window.confirm(`Delete prop "${p.name}"?`)) deleteProp(p.id);
+    requestConfirm({
+      title: 'Delete prop',
+      message: `Delete prop "${p.name}"?`,
+      confirmLabel: 'Delete',
+      onConfirm: () => deleteProp(p.id),
+    });
   };
 
   return (
@@ -157,6 +165,8 @@ export default function Props() {
         puzzles={puzzles}
         zones={zones}
       />
+
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }

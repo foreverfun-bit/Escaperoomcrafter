@@ -2,11 +2,13 @@ import { useOutletContext } from 'react-router-dom';
 import { useState } from 'react';
 import { Plus, ListChecks, Pencil, Trash2, ArrowLeft, ArrowRight, CalendarDays } from 'lucide-react';
 import { useRooms, useTasks, usePuzzles, useProps } from '../store/RoomsContext.jsx';
+import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
 import { TASK_STATUSES } from '../store/constants.js';
 import Button from '../components/ui/Button.jsx';
 import { Card, CardBody } from '../components/ui/Card.jsx';
 import Badge from '../components/ui/Badge.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
+import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
 import TaskFormModal from '../components/TaskFormModal.jsx';
 
 export default function Tasks() {
@@ -17,6 +19,7 @@ export default function Tasks() {
   const props = useProps(room.id);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const { requestConfirm, dialogProps } = useConfirmDialog();
 
   const puzzleName = (id) => puzzles.find((p) => p.id === id)?.name;
   const propName = (id) => props.find((p) => p.id === id)?.name;
@@ -34,7 +37,12 @@ export default function Tasks() {
     else addTask(room.id, values);
   };
   const handleDelete = (t) => {
-    if (window.confirm(`Delete task "${t.title}"?`)) deleteTask(t.id);
+    requestConfirm({
+      title: 'Delete task',
+      message: `Delete task "${t.title}"?`,
+      confirmLabel: 'Delete',
+      onConfirm: () => deleteTask(t.id),
+    });
   };
   const shiftStatus = (t, dir) => {
     const idx = TASK_STATUSES.indexOf(t.status);
@@ -154,6 +162,8 @@ export default function Tasks() {
         puzzles={puzzles}
         props={props}
       />
+
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }

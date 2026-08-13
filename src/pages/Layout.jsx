@@ -2,9 +2,11 @@ import { useOutletContext } from 'react-router-dom';
 import { useState } from 'react';
 import { Plus, Map, ArrowLeft } from 'lucide-react';
 import { useRooms, useZones, usePuzzles, usePropsInZone } from '../store/RoomsContext.jsx';
+import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
 import { ZONE_PALETTE } from '../store/constants.js';
 import Button from '../components/ui/Button.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
+import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
 import ZoneFormModal from '../components/ZoneFormModal.jsx';
 import PropFormModal from '../components/PropFormModal.jsx';
 import BlueprintCanvas from '../components/layout/BlueprintCanvas.jsx';
@@ -22,6 +24,7 @@ export default function Layout() {
   const [interiorZoneId, setInteriorZoneId] = useState(null);
   const [propFormOpen, setPropFormOpen] = useState(false);
   const [editingProp, setEditingProp] = useState(null);
+  const { requestConfirm, dialogProps } = useConfirmDialog();
 
   const puzzlesInZone = (zoneId) => puzzles.filter((p) => p.zoneId === zoneId);
   const unassigned = puzzles.filter((p) => !p.zoneId);
@@ -51,9 +54,12 @@ export default function Layout() {
   };
 
   const handleDelete = (zone) => {
-    if (window.confirm(`Delete zone "${zone.name}"? Puzzles and props placed in it will become unassigned.`)) {
-      deleteZone(zone.id);
-    }
+    requestConfirm({
+      title: 'Delete zone',
+      message: `Delete zone "${zone.name}"? Puzzles and props placed in it will become unassigned.`,
+      confirmLabel: 'Delete zone',
+      onConfirm: () => deleteZone(zone.id),
+    });
   };
 
   const handleQuickAdd = (category) => {
@@ -204,6 +210,8 @@ export default function Layout() {
         defaultColor={ZONE_PALETTE[zones.length % ZONE_PALETTE.length]}
         puzzles={puzzles}
       />
+
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }
