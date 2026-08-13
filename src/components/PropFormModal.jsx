@@ -16,13 +16,14 @@ const BLANK = {
   puzzleIds: [],
   notes: '',
   photos: [],
+  zoneId: '',
 };
 
-export default function PropFormModal({ open, onClose, onSubmit, initial, puzzles }) {
+export default function PropFormModal({ open, onClose, onSubmit, initial, puzzles, zones = [] }) {
   const [form, setForm] = useState(BLANK);
 
   useEffect(() => {
-    if (open) setForm(initial ? { ...BLANK, ...initial } : BLANK);
+    if (open) setForm(initial ? { ...BLANK, ...initial, zoneId: initial.zoneId || '' } : BLANK);
   }, [open, initial]);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -30,11 +31,28 @@ export default function PropFormModal({ open, onClose, onSubmit, initial, puzzle
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.name.trim()) return;
-    onSubmit({
+    const zoneId = form.zoneId || null;
+    const previousZoneId = initial?.zoneId || null;
+    const payload = {
       ...form,
+      zoneId,
       quantity: Number(form.quantity) || 1,
       cost: Number(form.cost) || 0,
-    });
+    };
+    if (!zoneId) {
+      payload.x = null;
+      payload.y = null;
+      payload.w = null;
+      payload.h = null;
+    } else if (zoneId !== previousZoneId || form.x == null) {
+      // Newly placed in this zone (or switching zones) - drop it at a
+      // default spot; it can be dragged into place from the interior view.
+      payload.x = 10;
+      payload.y = 10;
+      payload.w = 20;
+      payload.h = 16;
+    }
+    onSubmit(payload);
     onClose();
   };
 
@@ -79,6 +97,12 @@ export default function PropFormModal({ open, onClose, onSubmit, initial, puzzle
           value={form.source}
           onChange={set('source')}
           placeholder="Store, link, or 'build in-house'"
+        />
+        <Select
+          label="Zone"
+          options={[{ value: '', label: 'Unassigned' }, ...zones.map((z) => ({ value: z.id, label: z.name }))]}
+          value={form.zoneId}
+          onChange={set('zoneId')}
         />
         <MultiSelect
           label="Used in puzzles"

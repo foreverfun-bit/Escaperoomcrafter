@@ -138,6 +138,7 @@ export default function Layout() {
           onSubmit={handlePropSubmit}
           initial={editingProp}
           puzzles={puzzles}
+          zones={zones}
         />
       </div>
     );

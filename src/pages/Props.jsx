@@ -1,7 +1,7 @@
 import { useOutletContext } from 'react-router-dom';
 import { useMemo, useState } from 'react';
 import { Plus, Package, Pencil, Trash2 } from 'lucide-react';
-import { useRooms, useProps, usePuzzles } from '../store/RoomsContext.jsx';
+import { useRooms, useProps, usePuzzles, useZones } from '../store/RoomsContext.jsx';
 import Button from '../components/ui/Button.jsx';
 import { Card } from '../components/ui/Card.jsx';
 import Badge from '../components/ui/Badge.jsx';
@@ -13,10 +13,12 @@ export default function Props() {
   const { addProp, updateProp, deleteProp } = useRooms();
   const props = useProps(room.id);
   const puzzles = usePuzzles(room.id);
+  const zones = useZones(room.id);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
 
   const puzzleName = (id) => puzzles.find((p) => p.id === id)?.name || 'Unknown';
+  const zoneName = (id) => zones.find((z) => z.id === id)?.name || null;
 
   const totals = useMemo(() => {
     const totalCost = props.reduce((s, p) => s + p.cost * p.quantity, 0);
@@ -76,6 +78,7 @@ export default function Props() {
                 <tr className="border-b border-stone-800 text-xs text-stone-500">
                   <th className="px-4 py-3 font-medium">Name</th>
                   <th className="px-4 py-3 font-medium">Category</th>
+                  <th className="px-4 py-3 font-medium">Zone</th>
                   <th className="px-4 py-3 font-medium">Qty</th>
                   <th className="px-4 py-3 font-medium">Status</th>
                   <th className="px-4 py-3 font-medium">Cost</th>
@@ -102,6 +105,9 @@ export default function Props() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-stone-400">{p.category}</td>
+                    <td className="px-4 py-3 text-stone-400">
+                      {zoneName(p.zoneId) || <span className="text-stone-600">—</span>}
+                    </td>
                     <td className="px-4 py-3 text-stone-400">{p.quantity}</td>
                     <td className="px-4 py-3">
                       <Badge>{p.sourcingStatus}</Badge>
@@ -149,6 +155,7 @@ export default function Props() {
         onSubmit={handleSubmit}
         initial={editing}
         puzzles={puzzles}
+        zones={zones}
       />
     </div>
   );
