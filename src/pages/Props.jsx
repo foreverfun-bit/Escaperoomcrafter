@@ -87,8 +87,19 @@ export default function Props() {
                 {props.map((p) => (
                   <tr key={p.id} className="align-top hover:bg-stone-900/40">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-stone-100">{p.name}</p>
-                      {p.source && <p className="text-xs text-stone-500">{p.source}</p>}
+                      <div className="flex items-center gap-2.5">
+                        {p.photos?.[0] ? (
+                          <img
+                            src={p.photos[0].dataUrl}
+                            alt=""
+                            className="h-9 w-9 shrink-0 rounded-md border border-stone-800 object-cover"
+                          />
+                        ) : null}
+                        <div>
+                          <p className="font-medium text-stone-100">{p.name}</p>
+                          {p.source && <p className="text-xs text-stone-500">{p.source}</p>}
+                        </div>
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-stone-400">{p.category}</td>
                     <td className="px-4 py-3 text-stone-400">{p.quantity}</td>

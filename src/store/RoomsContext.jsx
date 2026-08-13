@@ -29,6 +29,7 @@ export function RoomsProvider({ children }) {
       difficulty: 'Medium',
       targetMinutes: 60,
       status: 'Concept',
+      photos: [],
       createdAt: now(),
       updatedAt: now(),
       ...partial,
@@ -113,6 +114,7 @@ export function RoomsProvider({ children }) {
       source: '',
       puzzleIds: [],
       notes: '',
+      photos: [],
       // Interior-designer placement (optional): a prop can be tracked for
       // sourcing/budget here AND positioned inside a zone's floor plan.
       zoneId: null,

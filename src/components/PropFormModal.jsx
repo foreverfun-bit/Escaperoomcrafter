@@ -3,6 +3,7 @@ import Modal from './ui/Modal.jsx';
 import Button from './ui/Button.jsx';
 import { TextField, TextArea, Select } from './ui/Field.jsx';
 import MultiSelect from './ui/MultiSelect.jsx';
+import PhotoGallery from './ui/PhotoGallery.jsx';
 import { PROP_CATEGORIES, SOURCING_STATUSES } from '../store/constants.js';
 
 const BLANK = {
@@ -14,6 +15,7 @@ const BLANK = {
   source: '',
   puzzleIds: [],
   notes: '',
+  photos: [],
 };
 
 export default function PropFormModal({ open, onClose, onSubmit, initial, puzzles }) {
@@ -86,6 +88,12 @@ export default function PropFormModal({ open, onClose, onSubmit, initial, puzzle
           emptyText="No puzzles yet."
         />
         <TextArea label="Notes" value={form.notes} onChange={set('notes')} />
+        <PhotoGallery
+          photos={form.photos}
+          onAdd={(newPhotos) => setForm((f) => ({ ...f, photos: [...f.photos, ...newPhotos] }))}
+          onRemove={(id) => setForm((f) => ({ ...f, photos: f.photos.filter((p) => p.id !== id) }))}
+          emptyText="No photos of this prop yet."
+        />
       </form>
     </Modal>
   );

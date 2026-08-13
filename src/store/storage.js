@@ -28,6 +28,12 @@ export function saveData(data) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (err) {
     console.error('Failed to save escape-room-crafter data', err);
+    if (err?.name === 'QuotaExceededError') {
+      window.alert(
+        "Storage is full, so that last change wasn't saved. Photos take up the most space — " +
+          'try removing a few, or export a backup and clear some out.',
+      );
+    }
   }
 }
 

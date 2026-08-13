@@ -6,6 +6,7 @@ import { Card, CardBody } from '../components/ui/Card.jsx';
 import ProgressBar from '../components/ui/ProgressBar.jsx';
 import Badge from '../components/ui/Badge.jsx';
 import Button from '../components/ui/Button.jsx';
+import PhotoGallery from '../components/ui/PhotoGallery.jsx';
 import RoomFormModal from '../components/RoomFormModal.jsx';
 
 export default function RoomOverview() {
@@ -14,6 +15,7 @@ export default function RoomOverview() {
   const progress = useRoomProgress(room.id);
   const tasks = useTasks(room.id);
   const [editOpen, setEditOpen] = useState(false);
+  const photos = room.photos || [];
 
   const upcoming = tasks
     .filter((t) => t.status !== 'Done')
@@ -81,6 +83,17 @@ export default function RoomOverview() {
           </CardBody>
         </Card>
       </div>
+
+      <Card>
+        <CardBody>
+          <PhotoGallery
+            photos={photos}
+            onAdd={(newPhotos) => updateRoom(room.id, { photos: [...photos, ...newPhotos] })}
+            onRemove={(id) => updateRoom(room.id, { photos: photos.filter((p) => p.id !== id) })}
+            emptyText="No photos of this room yet. Add reference shots, build progress, or the finished space."
+          />
+        </CardBody>
+      </Card>
 
       <Card>
         <CardBody>
