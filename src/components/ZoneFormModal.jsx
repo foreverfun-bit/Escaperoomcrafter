@@ -5,7 +5,7 @@ import { TextField, TextArea } from './ui/Field.jsx';
 import MultiSelect from './ui/MultiSelect.jsx';
 import { ZONE_PALETTE } from '../store/constants.js';
 
-const BLANK = { name: '', description: '', puzzleIds: [], notes: '', color: ZONE_PALETTE[0] };
+const BLANK = { name: '', description: '', puzzleIds: [], notes: '', color: ZONE_PALETTE[0], widthFt: '', lengthFt: '' };
 
 export default function ZoneFormModal({ open, onClose, onSubmit, initial, puzzles, defaultColor }) {
   const isEdit = Boolean(initial?.id);
@@ -22,7 +22,11 @@ export default function ZoneFormModal({ open, onClose, onSubmit, initial, puzzle
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.name.trim()) return;
-    onSubmit(form);
+    onSubmit({
+      ...form,
+      widthFt: form.widthFt === '' ? null : Number(form.widthFt),
+      lengthFt: form.lengthFt === '' ? null : Number(form.lengthFt),
+    });
     onClose();
   };
 
@@ -64,6 +68,28 @@ export default function ZoneFormModal({ open, onClose, onSubmit, initial, puzzle
               />
             ))}
           </div>
+        </div>
+        <div className="flex gap-3">
+          <TextField
+            label="Width (ft)"
+            type="number"
+            min="0"
+            step="0.5"
+            value={form.widthFt}
+            onChange={set('widthFt')}
+            placeholder="e.g. 10"
+            className="flex-1"
+          />
+          <TextField
+            label="Length (ft)"
+            type="number"
+            min="0"
+            step="0.5"
+            value={form.lengthFt}
+            onChange={set('lengthFt')}
+            placeholder="e.g. 12"
+            className="flex-1"
+          />
         </div>
         <MultiSelect
           label="Puzzles in this zone"

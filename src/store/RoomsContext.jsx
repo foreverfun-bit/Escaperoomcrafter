@@ -163,6 +163,9 @@ export function RoomsProvider({ children }) {
         w: 30,
         h: 28,
         color: ZONE_PALETTE[cascade % ZONE_PALETTE.length],
+        // Real-world footprint, in feet.
+        widthFt: null,
+        lengthFt: null,
         createdAt: now(),
         updatedAt: now(),
         ...partial,

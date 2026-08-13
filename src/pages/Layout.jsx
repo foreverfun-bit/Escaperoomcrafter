@@ -95,7 +95,14 @@ export default function Layout() {
               <ArrowLeft size={14} />
               Blueprint
             </button>
-            <h1 className="text-lg font-semibold text-stone-100">{interiorZone.name} — interior</h1>
+            <h1 className="text-lg font-semibold text-stone-100">
+              {interiorZone.name} — interior
+              {interiorZone.widthFt && interiorZone.lengthFt ? (
+                <span className="ml-2 text-sm font-normal text-stone-500">
+                  {interiorZone.widthFt}' × {interiorZone.lengthFt}'
+                </span>
+              ) : null}
+            </h1>
             <p className="mt-1 text-sm text-stone-500">
               Place props, locks, and furniture inside this zone. Drag to position, corner handle to resize.
             </p>

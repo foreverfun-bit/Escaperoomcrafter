@@ -58,6 +58,7 @@ export default function BlueprintZone({ zone, order, puzzleCount, x, y, w, h, on
           <p className="truncate text-sm font-bold leading-tight">{zone.name}</p>
           <p className="text-[11px] font-semibold text-white/75">
             {puzzleCount} puzzle{puzzleCount === 1 ? '' : 's'}
+            {zone.widthFt && zone.lengthFt ? ` · ${zone.widthFt}' × ${zone.lengthFt}'` : ''}
           </p>
         </div>
       </div>
