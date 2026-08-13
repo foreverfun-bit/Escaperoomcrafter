@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { CloudUpload, Loader2 } from 'lucide-react';
 import { useRooms } from '../store/RoomsContext.jsx';
+import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
 import Button from './ui/Button.jsx';
+import ConfirmDialog from './ui/ConfirmDialog.jsx';
 
 export default function LocalBackupBanner() {
   const { localBackupAvailable, importLocalBackupToCloud, dismissLocalBackup } = useRooms();
   const [busy, setBusy] = useState(false);
+  const { requestConfirm, dialogProps } = useConfirmDialog();
 
   if (!localBackupAvailable) return null;
 
@@ -13,6 +16,16 @@ export default function LocalBackupBanner() {
     setBusy(true);
     await importLocalBackupToCloud();
     setBusy(false);
+  };
+
+  const handleDismiss = () => {
+    requestConfirm({
+      title: 'Discard this backup?',
+      message:
+        "This data only exists on this device. Once you dismiss it here, it's gone for good - it will not be recoverable.",
+      confirmLabel: 'Discard permanently',
+      onConfirm: dismissLocalBackup,
+    });
   };
 
   return (
@@ -23,7 +36,7 @@ export default function LocalBackupBanner() {
           <span>Found existing rooms on this device from before cloud sync. Upload them to your account?</span>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={dismissLocalBackup} disabled={busy}>
+          <Button variant="ghost" size="sm" onClick={handleDismiss} disabled={busy}>
             Dismiss
           </Button>
           <Button size="sm" onClick={handleImport} disabled={busy}>
@@ -32,6 +45,8 @@ export default function LocalBackupBanner() {
           </Button>
         </div>
       </div>
+
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }

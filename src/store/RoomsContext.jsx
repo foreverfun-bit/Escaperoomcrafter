@@ -41,7 +41,12 @@ export function RoomsProvider({ children }) {
   const { user } = useAuth();
   const [data, setData] = useState(() => loadData());
   const [syncState, setSyncState] = useState('loading'); // 'loading' | 'ready' | 'error'
-  const [localBackupAvailable, setLocalBackupAvailable] = useState(false);
+  // Snapshot of pre-cloud local data, captured once before it's replaced by
+  // the (possibly empty) cloud data below. Deliberately its own state
+  // rather than a ref that tracks the live `data`: importLocalBackupToCloud
+  // runs long after that replacement happens, so a live-tracking ref would
+  // have already been overwritten by the time the user acts on the banner.
+  const [localBackupSnapshot, setLocalBackupSnapshot] = useState(null);
   const dataRef = useRef(data);
   dataRef.current = data;
 
@@ -56,6 +61,7 @@ export function RoomsProvider({ children }) {
     if (!user) return;
     let cancelled = false;
     setSyncState('loading');
+    const localSnapshotAtLoad = dataRef.current;
 
     Promise.all(TABLE_KEYS.map((key) => fetchAll(key)))
       .then((results) => {
@@ -64,8 +70,8 @@ export function RoomsProvider({ children }) {
         TABLE_KEYS.forEach((key, i) => {
           cloudData[key] = results[i];
         });
-        const hasLocalOnly = cloudData.rooms.length === 0 && (dataRef.current.rooms || []).length > 0;
-        setLocalBackupAvailable(hasLocalOnly);
+        const hasLocalOnly = cloudData.rooms.length === 0 && (localSnapshotAtLoad.rooms || []).length > 0;
+        if (hasLocalOnly) setLocalBackupSnapshot(localSnapshotAtLoad);
         setData(cloudData);
         setSyncState('ready');
       })
@@ -85,16 +91,24 @@ export function RoomsProvider({ children }) {
   }, [user]);
 
   const importLocalBackupToCloud = useCallback(async () => {
-    const snapshot = dataRef.current;
+    if (!localBackupSnapshot) return;
     for (const key of TABLE_KEYS) {
-      for (const item of snapshot[key] || []) {
+      for (const item of localBackupSnapshot[key] || []) {
         await insertRow(key, item);
       }
     }
-    setLocalBackupAvailable(false);
-  }, []);
+    // Merge immediately so it's visible without waiting on realtime echoes.
+    setData((d) => {
+      const merged = { ...d };
+      TABLE_KEYS.forEach((key) => {
+        merged[key] = [...d[key], ...(localBackupSnapshot[key] || [])];
+      });
+      return merged;
+    });
+    setLocalBackupSnapshot(null);
+  }, [localBackupSnapshot]);
 
-  const dismissLocalBackup = useCallback(() => setLocalBackupAvailable(false), []);
+  const dismissLocalBackup = useCallback(() => setLocalBackupSnapshot(null), []);
 
   // ---------- Rooms ----------
   const addRoom = useCallback(
@@ -588,7 +602,7 @@ export function RoomsProvider({ children }) {
     () => ({
       data,
       syncState,
-      localBackupAvailable,
+      localBackupAvailable: Boolean(localBackupSnapshot),
       importLocalBackupToCloud,
       dismissLocalBackup,
       addRoom,
@@ -627,7 +641,7 @@ export function RoomsProvider({ children }) {
     [
       data,
       syncState,
-      localBackupAvailable,
+      localBackupSnapshot,
       importLocalBackupToCloud,
       dismissLocalBackup,
       addRoom,
