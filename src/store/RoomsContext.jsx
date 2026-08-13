@@ -52,6 +52,7 @@ export function RoomsProvider({ children }) {
       props: d.props.filter((p) => p.roomId !== id),
       zones: d.zones.filter((z) => z.roomId !== id),
       tasks: d.tasks.filter((t) => t.roomId !== id),
+      brainstormBoards: d.brainstormBoards.filter((b) => b.roomId !== id),
       brainstormIdeas: d.brainstormIdeas.filter((i) => i.roomId !== id),
       brainstormConnections: d.brainstormConnections.filter((c) => c.roomId !== id),
       brainstormPaths: d.brainstormPaths.filter((p) => p.roomId !== id),
@@ -249,12 +250,55 @@ export function RoomsProvider({ children }) {
     setData((d) => ({ ...d, tasks: d.tasks.filter((t) => t.id !== id) }));
   }, []);
 
-  // ---------- Brainstorm board ----------
+  // ---------- Brainstorm boards ----------
+  const addBoard = useCallback((roomId, partial) => {
+    const id = makeId();
+    setData((d) => {
+      const roomBoards = d.brainstormBoards.filter((b) => b.roomId === roomId);
+      const board = {
+        id,
+        roomId,
+        name: `Board ${roomBoards.length + 1}`,
+        createdAt: now(),
+        ...partial,
+      };
+      return { ...d, brainstormBoards: [...d.brainstormBoards, board] };
+    });
+    return id;
+  }, []);
+
+  const updateBoard = useCallback((id, patch) => {
+    setData((d) => ({
+      ...d,
+      brainstormBoards: d.brainstormBoards.map((b) => (b.id === id ? { ...b, ...patch } : b)),
+    }));
+  }, []);
+
+  const deleteBoard = useCallback((id) => {
+    setData((d) => ({
+      ...d,
+      brainstormBoards: d.brainstormBoards.filter((b) => b.id !== id),
+      brainstormIdeas: d.brainstormIdeas.filter((i) => i.boardId !== id),
+      brainstormConnections: d.brainstormConnections.filter((c) => c.boardId !== id),
+      brainstormPaths: d.brainstormPaths.filter((p) => p.boardId !== id),
+    }));
+  }, []);
+
+  const clearBoard = useCallback((id) => {
+    setData((d) => ({
+      ...d,
+      brainstormIdeas: d.brainstormIdeas.filter((i) => i.boardId !== id),
+      brainstormConnections: d.brainstormConnections.filter((c) => c.boardId !== id),
+      brainstormPaths: d.brainstormPaths.filter((p) => p.boardId !== id),
+    }));
+  }, []);
+
   const addIdea = useCallback((roomId, partial) => {
     const id = makeId();
     const idea = {
       id,
       roomId,
+      boardId: null,
       boardType: 'sticky',
       title: '',
       notes: '',
@@ -290,7 +334,7 @@ export function RoomsProvider({ children }) {
     }));
   }, []);
 
-  const addConnection = useCallback((roomId, from, to) => {
+  const addConnection = useCallback((roomId, boardId, from, to) => {
     setData((d) => {
       const exists = d.brainstormConnections.some(
         (c) => (c.from === from && c.to === to) || (c.from === to && c.to === from),
@@ -298,7 +342,7 @@ export function RoomsProvider({ children }) {
       if (exists || from === to) return d;
       return {
         ...d,
-        brainstormConnections: [...d.brainstormConnections, { id: makeId(), roomId, from, to }],
+        brainstormConnections: [...d.brainstormConnections, { id: makeId(), roomId, boardId, from, to }],
       };
     });
   }, []);
@@ -311,7 +355,10 @@ export function RoomsProvider({ children }) {
     const id = makeId();
     setData((d) => ({
       ...d,
-      brainstormPaths: [...d.brainstormPaths, { id, roomId, points: '', color: '#2a2320', width: 3, ...partial }],
+      brainstormPaths: [
+        ...d.brainstormPaths,
+        { id, roomId, boardId: null, points: '', color: '#2a2320', width: 3, ...partial },
+      ],
     }));
     return id;
   }, []);
@@ -390,6 +437,10 @@ export function RoomsProvider({ children }) {
       addTask,
       updateTask,
       deleteTask,
+      addBoard,
+      updateBoard,
+      deleteBoard,
+      clearBoard,
       addIdea,
       updateIdea,
       deleteIdea,
@@ -421,6 +472,10 @@ export function RoomsProvider({ children }) {
       addTask,
       updateTask,
       deleteTask,
+      addBoard,
+      updateBoard,
+      deleteBoard,
+      clearBoard,
       addIdea,
       updateIdea,
       deleteIdea,
@@ -475,19 +530,30 @@ export function useTasks(roomId) {
   return useMemo(() => data.tasks.filter((t) => t.roomId === roomId), [data.tasks, roomId]);
 }
 
-export function useIdeas(roomId) {
+export function useBoards(roomId) {
   const { data } = useRooms();
-  return useMemo(() => data.brainstormIdeas.filter((i) => i.roomId === roomId), [data.brainstormIdeas, roomId]);
+  return useMemo(
+    () => data.brainstormBoards.filter((b) => b.roomId === roomId).sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    [data.brainstormBoards, roomId],
+  );
 }
 
-export function useConnections(roomId) {
+export function useIdeas(boardId) {
   const { data } = useRooms();
-  return useMemo(() => data.brainstormConnections.filter((c) => c.roomId === roomId), [data.brainstormConnections, roomId]);
+  return useMemo(() => data.brainstormIdeas.filter((i) => i.boardId === boardId), [data.brainstormIdeas, boardId]);
 }
 
-export function usePaths(roomId) {
+export function useConnections(boardId) {
   const { data } = useRooms();
-  return useMemo(() => data.brainstormPaths.filter((p) => p.roomId === roomId), [data.brainstormPaths, roomId]);
+  return useMemo(
+    () => data.brainstormConnections.filter((c) => c.boardId === boardId),
+    [data.brainstormConnections, boardId],
+  );
+}
+
+export function usePaths(boardId) {
+  const { data } = useRooms();
+  return useMemo(() => data.brainstormPaths.filter((p) => p.boardId === boardId), [data.brainstormPaths, boardId]);
 }
 
 export function usePropsInZone(zoneId) {
