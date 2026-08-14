@@ -71,15 +71,26 @@ export function saveData(data) {
   }
 }
 
+// iPadOS 13+ reports as "Macintosh" in the user agent, so touch support is
+// the only reliable way to tell it apart from real desktop Safari/macOS.
+function isAppleTouchDevice() {
+  const ua = navigator.userAgent;
+  if (/iPad|iPhone|iPod/.test(ua)) return true;
+  return /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+}
+
 export async function downloadJSON(data, filename = 'escape-room-crafter-backup.json') {
   const json = JSON.stringify(data, null, 2);
   const file = new File([json], filename, { type: 'application/json' });
 
   // iOS/iPadOS Safari (including installed PWAs) largely ignores the
   // <a download> trick below - it just opens the JSON instead of saving it.
-  // The share sheet is the reliable way to get a file into Files there, and
-  // it's supported wherever this style of file sharing works.
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+  // The share sheet is the reliable way to get a file into Files there. Everywhere
+  // else (including desktop browsers that also technically support
+  // navigator.share) a plain download is more predictable - a desktop share
+  // flyout often has no real target for a .json file and can silently resolve
+  // without actually saving anything.
+  if (isAppleTouchDevice() && navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: filename });
       return;
