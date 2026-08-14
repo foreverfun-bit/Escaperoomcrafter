@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, DoorOpen } from 'lucide-react';
+import { Plus, DoorOpen, AlertTriangle, Loader2 } from 'lucide-react';
 import { useRooms } from '../store/RoomsContext.jsx';
 import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
 import Button from '../components/ui/Button.jsx';
@@ -9,7 +9,7 @@ import RoomCard from '../components/RoomCard.jsx';
 import RoomFormModal from '../components/RoomFormModal.jsx';
 
 export default function RoomList() {
-  const { data, addRoom, updateRoom, deleteRoom } = useRooms();
+  const { data, syncState, syncError, addRoom, updateRoom, deleteRoom } = useRooms();
   const [formOpen, setFormOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
   const { requestConfirm, dialogProps } = useConfirmDialog();
@@ -53,7 +53,30 @@ export default function RoomList() {
         </Button>
       </div>
 
-      {data.rooms.length === 0 ? (
+      {syncState === 'error' ? (
+        <EmptyState
+          icon={AlertTriangle}
+          title="Couldn't load your rooms"
+          description={
+            <>
+              There was a problem reaching the server. Check your connection and reload the page - nothing
+              has been lost, this is just a display issue.
+              {syncError && (
+                <span className="mt-2 block font-mono text-xs text-stone-600">{syncError}</span>
+              )}
+            </>
+          }
+          action={
+            <Button onClick={() => window.location.reload()} size="sm">
+              Reload
+            </Button>
+          }
+        />
+      ) : syncState === 'loading' ? (
+        <div className="flex justify-center py-14">
+          <Loader2 size={22} className="animate-spin text-stone-600" />
+        </div>
+      ) : data.rooms.length === 0 ? (
         <EmptyState
           icon={DoorOpen}
           title="No rooms yet"
