@@ -71,25 +71,9 @@ export function saveData(data) {
   }
 }
 
-export async function downloadJSON(data, filename = 'escape-room-crafter-backup.json') {
-  const json = JSON.stringify(data, null, 2);
-  const file = new File([json], filename, { type: 'application/json' });
-
-  // iOS/iPadOS Safari (including installed PWAs) largely ignores the
-  // <a download> trick below - it just opens the JSON instead of saving it.
-  // The share sheet is the reliable way to get a file into Files there, and
-  // it's supported wherever this style of file sharing works.
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: filename });
-      return;
-    } catch (err) {
-      if (err?.name === 'AbortError') return; // user dismissed the share sheet
-      // fall through to the anchor-download approach below
-    }
-  }
-
-  const url = URL.createObjectURL(file);
+export function downloadJSON(data, filename = 'escape-room-crafter-backup.json') {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;

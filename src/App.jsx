@@ -1,6 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AppHeader from './components/AppHeader.jsx';
-import LocalBackupBanner from './components/LocalBackupBanner.jsx';
 import RoomLayout from './components/RoomLayout.jsx';
 import RoomList from './pages/RoomList.jsx';
 import RoomOverview from './pages/RoomOverview.jsx';
@@ -15,7 +14,6 @@ export default function App() {
   return (
     <div className="flex min-h-screen flex-col">
       <AppHeader />
-      <LocalBackupBanner />
       <main className="flex-1">
         <Routes>
           <Route path="/" element={<Navigate to="/rooms" replace />} />
