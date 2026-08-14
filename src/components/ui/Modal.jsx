@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 export default function Modal({ open, onClose, title, children, footer, wide = false }) {
@@ -11,7 +12,11 @@ export default function Modal({ open, onClose, title, children, footer, wide = f
 
   if (!open) return null;
 
-  return (
+  // Portalled to <body> so this "fixed, full-viewport" overlay can never end
+  // up trapped inside an ancestor's containing block (e.g. the app header's
+  // backdrop-blur, which - like any CSS filter - makes fixed descendants
+  // position relative to it instead of the viewport).
+  return createPortal(
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60">
       <div className="flex min-h-full items-center justify-center p-4">
         <div
@@ -30,6 +35,7 @@ export default function Modal({ open, onClose, title, children, footer, wide = f
           {footer && <div className="flex justify-end gap-2 border-t border-stone-800 p-4">{footer}</div>}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
