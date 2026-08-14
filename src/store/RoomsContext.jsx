@@ -41,6 +41,7 @@ export function RoomsProvider({ children }) {
   const { user } = useAuth();
   const [data, setData] = useState(() => loadData());
   const [syncState, setSyncState] = useState('loading'); // 'loading' | 'ready' | 'error'
+  const [syncError, setSyncError] = useState('');
   // Snapshot of pre-cloud local data, captured once before it's replaced by
   // the (possibly empty) cloud data below. Deliberately its own state
   // rather than a ref that tracks the live `data`: importLocalBackupToCloud
@@ -61,6 +62,7 @@ export function RoomsProvider({ children }) {
     if (!user) return;
     let cancelled = false;
     setSyncState('loading');
+    setSyncError('');
     const localSnapshotAtLoad = dataRef.current;
 
     Promise.all(TABLE_KEYS.map((key) => fetchAll(key)))
@@ -77,7 +79,10 @@ export function RoomsProvider({ children }) {
       })
       .catch((err) => {
         console.error('Failed to load cloud data', err);
-        if (!cancelled) setSyncState('error');
+        if (!cancelled) {
+          setSyncError(err?.message || err?.error_description || String(err));
+          setSyncState('error');
+        }
       });
 
     const unsubscribe = subscribeAll(user.id, (key, eventType, row) => {
@@ -602,6 +607,7 @@ export function RoomsProvider({ children }) {
     () => ({
       data,
       syncState,
+      syncError,
       localBackupAvailable: Boolean(localBackupSnapshot),
       importLocalBackupToCloud,
       dismissLocalBackup,
@@ -641,6 +647,7 @@ export function RoomsProvider({ children }) {
     [
       data,
       syncState,
+      syncError,
       localBackupSnapshot,
       importLocalBackupToCloud,
       dismissLocalBackup,

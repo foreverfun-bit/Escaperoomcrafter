@@ -9,7 +9,7 @@ import RoomCard from '../components/RoomCard.jsx';
 import RoomFormModal from '../components/RoomFormModal.jsx';
 
 export default function RoomList() {
-  const { data, syncState, addRoom, updateRoom, deleteRoom } = useRooms();
+  const { data, syncState, syncError, addRoom, updateRoom, deleteRoom } = useRooms();
   const [formOpen, setFormOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(null);
   const { requestConfirm, dialogProps } = useConfirmDialog();
@@ -57,7 +57,15 @@ export default function RoomList() {
         <EmptyState
           icon={AlertTriangle}
           title="Couldn't load your rooms"
-          description="There was a problem reaching the server. Check your connection and reload the page - nothing has been lost, this is just a display issue."
+          description={
+            <>
+              There was a problem reaching the server. Check your connection and reload the page - nothing
+              has been lost, this is just a display issue.
+              {syncError && (
+                <span className="mt-2 block font-mono text-xs text-stone-600">{syncError}</span>
+              )}
+            </>
+          }
           action={
             <Button onClick={() => window.location.reload()} size="sm">
               Reload
