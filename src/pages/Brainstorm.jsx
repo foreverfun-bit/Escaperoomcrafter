@@ -1,7 +1,7 @@
-import { useOutletContext } from 'react-router-dom';
-import { useState } from 'react';
+import { useOutletContext, useSearchParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { Lightbulb, Eraser, LayoutGrid } from 'lucide-react';
-import { useRooms, useBoards, useIdeas, useConnections, usePaths } from '../store/RoomsContext.jsx';
+import { useRooms, useBoards, usePuzzles, useIdeas, useConnections, usePaths } from '../store/RoomsContext.jsx';
 import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
 import { BOARD_SWATCHES } from '../store/constants.js';
 import Button from '../components/ui/Button.jsx';
@@ -32,10 +32,30 @@ export default function Brainstorm() {
     convertIdeaToPuzzle,
   } = useRooms();
   const boards = useBoards(room.id);
+  const puzzles = usePuzzles(room.id);
   const { requestConfirm, dialogProps } = useConfirmDialog();
 
-  const [activeBoardId, setActiveBoardId] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeBoardId, setActiveBoardId] = useState(() => searchParams.get('board') || null);
   const activeBoard = boards.find((b) => b.id === activeBoardId) || boards[0] || null;
+
+  // Follow a "jump to this board" link from elsewhere (e.g. a puzzle's
+  // linked-board badge) once the boards for this room have loaded.
+  useEffect(() => {
+    const wanted = searchParams.get('board');
+    if (wanted && wanted !== activeBoardId && boards.some((b) => b.id === wanted)) {
+      setActiveBoardId(wanted);
+    }
+  }, [searchParams, boards, activeBoardId]);
+
+  const handleSelectBoard = (id) => {
+    setActiveBoardId(id);
+    setSearchParams((params) => {
+      const next = new URLSearchParams(params);
+      next.set('board', id);
+      return next;
+    }, { replace: true });
+  };
 
   const ideas = useIdeas(activeBoard?.id);
   const connections = useConnections(activeBoard?.id);
@@ -54,7 +74,7 @@ export default function Brainstorm() {
 
   const handleCreateBoard = () => {
     const id = addBoard(room.id, {});
-    setActiveBoardId(id);
+    handleSelectBoard(id);
   };
 
   const handleDeleteBoard = (board) => {
@@ -151,12 +171,34 @@ export default function Brainstorm() {
 
       <BoardTabs
         boards={boards}
+        puzzles={puzzles}
         activeId={activeBoard?.id}
-        onSelect={setActiveBoardId}
+        onSelect={handleSelectBoard}
         onCreate={handleCreateBoard}
         onRename={(id, name) => updateBoard(id, { name })}
         onDelete={handleDeleteBoard}
       />
+
+      {activeBoard && (
+        <div className="mb-4 flex items-center gap-2 text-xs">
+          <label htmlFor="board-puzzle-link" className="text-stone-500">
+            Linked puzzle
+          </label>
+          <select
+            id="board-puzzle-link"
+            value={activeBoard.puzzleId || ''}
+            onChange={(e) => updateBoard(activeBoard.id, { puzzleId: e.target.value || null })}
+            className="rounded-lg border border-stone-700 bg-stone-900 px-2 py-1 text-xs text-stone-200 outline-none focus:border-pink-400"
+          >
+            <option value="">None</option>
+            {puzzles.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {!activeBoard ? (
         <EmptyState

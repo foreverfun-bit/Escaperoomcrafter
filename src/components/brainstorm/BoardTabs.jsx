@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Check, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check, X, Puzzle } from 'lucide-react';
 
-export default function BoardTabs({ boards, activeId, onSelect, onCreate, onRename, onDelete }) {
+export default function BoardTabs({ boards, puzzles = [], activeId, onSelect, onCreate, onRename, onDelete }) {
   const [renamingId, setRenamingId] = useState(null);
   const [renameValue, setRenameValue] = useState('');
+  const puzzleName = (id) => puzzles.find((p) => p.id === id)?.name;
 
   const startRename = (board) => {
     setRenamingId(board.id);
@@ -54,8 +55,17 @@ export default function BoardTabs({ boards, activeId, onSelect, onCreate, onRena
             </>
           ) : (
             <>
-              <button type="button" onClick={() => onSelect(board.id)}>
+              <button type="button" onClick={() => onSelect(board.id)} className="flex items-center gap-1">
                 {board.name}
+                {puzzleName(board.puzzleId) && (
+                  <span
+                    title={`Linked to puzzle: ${puzzleName(board.puzzleId)}`}
+                    className="flex items-center gap-0.5 rounded-full bg-stone-800 px-1.5 py-0.5 text-[10px] font-normal text-stone-400"
+                  >
+                    <Puzzle size={9} />
+                    {puzzleName(board.puzzleId)}
+                  </span>
+                )}
               </button>
               <span className="ml-0.5 hidden items-center gap-1 group-hover:flex">
                 <button

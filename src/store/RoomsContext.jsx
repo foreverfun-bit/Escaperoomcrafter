@@ -203,9 +203,11 @@ export function RoomsProvider({ children }) {
       const affectedProps = d.props.filter((p) => (p.puzzleIds || []).includes(id));
       const affectedPuzzles = d.puzzles.filter((p) => p.id !== id && p.dependsOn.includes(id));
       const affectedTasks = d.tasks.filter((t) => t.linkedPuzzleId === id);
+      const affectedBoards = d.brainstormBoards.filter((b) => b.puzzleId === id);
       affectedProps.forEach((p) => updateRow('props', p.id, { puzzleIds: p.puzzleIds.filter((pid) => pid !== id) }));
       affectedPuzzles.forEach((p) => updateRow('puzzles', p.id, { dependsOn: p.dependsOn.filter((depId) => depId !== id) }));
       affectedTasks.forEach((t) => updateRow('tasks', t.id, { linkedPuzzleId: null }));
+      affectedBoards.forEach((b) => updateRow('brainstormBoards', b.id, { puzzleId: null }));
       return {
         ...d,
         puzzles: d.puzzles
@@ -213,6 +215,7 @@ export function RoomsProvider({ children }) {
           .map((p) => ({ ...p, dependsOn: p.dependsOn.filter((depId) => depId !== id) })),
         props: d.props.map((p) => ({ ...p, puzzleIds: (p.puzzleIds || []).filter((pid) => pid !== id) })),
         tasks: d.tasks.map((t) => (t.linkedPuzzleId === id ? { ...t, linkedPuzzleId: null } : t)),
+        brainstormBoards: d.brainstormBoards.map((b) => (b.puzzleId === id ? { ...b, puzzleId: null } : b)),
       };
     });
     deleteRow('puzzles', id);

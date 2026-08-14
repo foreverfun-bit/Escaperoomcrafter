@@ -1,7 +1,7 @@
-import { useOutletContext } from 'react-router-dom';
+import { useOutletContext, Link } from 'react-router-dom';
 import { useState } from 'react';
-import { Plus, Puzzle as PuzzleIcon, Pencil, Trash2, Lightbulb, ArrowRight } from 'lucide-react';
-import { useRooms, usePuzzles, useZones } from '../store/RoomsContext.jsx';
+import { Plus, Puzzle as PuzzleIcon, Pencil, Trash2, Lightbulb, ArrowRight, LayoutGrid } from 'lucide-react';
+import { useRooms, usePuzzles, useZones, useBoards } from '../store/RoomsContext.jsx';
 import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
 import Button from '../components/ui/Button.jsx';
 import { Card, CardBody } from '../components/ui/Card.jsx';
@@ -15,6 +15,7 @@ export default function Puzzles() {
   const { addPuzzle, updatePuzzle, deletePuzzle } = useRooms();
   const puzzles = usePuzzles(room.id);
   const zones = useZones(room.id);
+  const boards = useBoards(room.id);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const { requestConfirm, dialogProps } = useConfirmDialog();
@@ -22,6 +23,7 @@ export default function Puzzles() {
   const puzzleName = (id) => puzzles.find((p) => p.id === id)?.name || 'Unknown';
   const zoneName = (id) => zones.find((z) => z.id === id)?.name;
   const unlocksOf = (id) => puzzles.filter((p) => p.dependsOn.includes(id));
+  const boardsFor = (puzzleId) => boards.filter((b) => b.puzzleId === puzzleId);
 
   const openCreate = () => {
     setEditing(null);
@@ -117,6 +119,21 @@ export default function Puzzles() {
                         <div className="mt-2 flex items-center gap-1 text-xs text-stone-500">
                           <Lightbulb size={12} />
                           {p.hints.length} hint{p.hints.length === 1 ? '' : 's'}
+                        </div>
+                      )}
+                      {boardsFor(p.id).length > 0 && (
+                        <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-stone-500">
+                          <LayoutGrid size={12} />
+                          <span>Brainstorm:</span>
+                          {boardsFor(p.id).map((b) => (
+                            <Link
+                              key={b.id}
+                              to={`/rooms/${room.id}/brainstorm?board=${b.id}`}
+                              className="rounded-full bg-stone-800 px-2 py-0.5 text-stone-300 hover:bg-stone-700 hover:text-stone-100"
+                            >
+                              {b.name}
+                            </Link>
+                          ))}
                         </div>
                       )}
                     </div>

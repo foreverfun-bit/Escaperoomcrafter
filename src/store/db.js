@@ -120,6 +120,7 @@ export const TABLES = {
     ...makeMapper({
       id: 'id',
       roomId: 'room_id',
+      puzzleId: 'puzzle_id',
       name: 'name',
       createdAt: 'created_at',
     }),
