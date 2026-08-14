@@ -53,7 +53,23 @@ export default function RoomList() {
         </Button>
       </div>
 
-      {syncState === 'error' ? (
+      {syncState === 'error' && data.rooms.length > 0 && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-800/50 bg-amber-950/30 px-4 py-2.5 text-sm text-amber-200">
+          <div className="flex items-center gap-2">
+            <AlertTriangle size={15} className="shrink-0" />
+            <span>
+              Can&apos;t reach the server right now - showing your last saved copy. Anything you change here
+              stays on this device only until the connection comes back, so reload once it's working again to
+              make sure everything's synced.
+            </span>
+          </div>
+          <Button onClick={() => window.location.reload()} size="sm" variant="ghost">
+            Retry
+          </Button>
+        </div>
+      )}
+
+      {syncState === 'error' && data.rooms.length === 0 ? (
         <EmptyState
           icon={AlertTriangle}
           title="Couldn't load your rooms"
