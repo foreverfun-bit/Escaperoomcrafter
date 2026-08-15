@@ -16,7 +16,7 @@ const QUICK_ADD_KINDS = ['Prop', 'Lock / Hardware', 'Furniture', 'Electronics'];
 
 export default function Layout() {
   const { room } = useOutletContext();
-  const { addZone, updateZone, deleteZone, updatePuzzle, addProp, updateProp } = useRooms();
+  const { addZone, updateZone, deleteZone, moveZone, updatePuzzle, addProp, updateProp } = useRooms();
   const zones = useZones(room.id);
   const puzzles = usePuzzles(room.id);
   const [formOpen, setFormOpen] = useState(false);
@@ -156,7 +156,8 @@ export default function Layout() {
         <div>
           <h1 className="text-lg font-semibold text-stone-100">Room layout & flow</h1>
           <p className="mt-1 text-sm text-stone-500">
-            Drag zones to sketch the floor plan; the number badge is the player's path order.
+            Drag zones to sketch the floor plan. The number badge is the player's path order - hover a zone and
+            use the arrows next to it to reorder.
           </p>
         </div>
         <Button onClick={openCreate}>
@@ -186,6 +187,7 @@ export default function Layout() {
           onEdit={openEdit}
           onOpenInterior={(zone) => setInteriorZoneId(zone.id)}
           onDelete={handleDelete}
+          onMoveZone={moveZone}
         />
       )}
 

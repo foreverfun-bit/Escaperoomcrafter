@@ -3,7 +3,16 @@ import BlueprintZone from './BlueprintZone.jsx';
 
 const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
-export default function BlueprintCanvas({ zones, puzzleCountFor, onCommitMove, onCommitResize, onEdit, onOpenInterior, onDelete }) {
+export default function BlueprintCanvas({
+  zones,
+  puzzleCountFor,
+  onCommitMove,
+  onCommitResize,
+  onEdit,
+  onOpenInterior,
+  onDelete,
+  onMoveZone,
+}) {
   const canvasRef = useRef(null);
   const [liveDrag, setLiveDrag] = useState(null); // { id, x, y }
   const [liveResize, setLiveResize] = useState(null); // { id, w, h }
@@ -94,6 +103,8 @@ export default function BlueprintCanvas({ zones, puzzleCountFor, onCommitMove, o
             key={zone.id}
             zone={zone}
             order={idx + 1}
+            isFirst={idx === 0}
+            isLast={idx === zones.length - 1}
             puzzleCount={puzzleCountFor(zone.id)}
             x={pos.x}
             y={pos.y}
@@ -104,6 +115,8 @@ export default function BlueprintCanvas({ zones, puzzleCountFor, onCommitMove, o
             onEdit={() => onEdit(zone)}
             onOpenInterior={() => onOpenInterior(zone)}
             onDelete={() => onDelete(zone)}
+            onMoveUp={() => onMoveZone(zone.id, 'up')}
+            onMoveDown={() => onMoveZone(zone.id, 'down')}
           />
         );
       })}
