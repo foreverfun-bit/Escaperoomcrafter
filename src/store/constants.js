@@ -34,7 +34,20 @@ export const TASK_STATUSES = ['To Do', 'In Progress', 'Done'];
 export const TASK_PRIORITIES = ['Low', 'Medium', 'High'];
 
 // Cascading default fill colors for newly created zones on the blueprint.
-export const ZONE_PALETTE = ['#3b6fa6', '#0f8f82', '#c98a2c', '#c2564a', '#7c5cbf', '#3f8f5c'];
+export const ZONE_PALETTE = [
+  '#3b6fa6',
+  '#2c8fc9',
+  '#0f8f82',
+  '#3f8f5c',
+  '#a3a83c',
+  '#c98a2c',
+  '#c2564a',
+  '#c9527a',
+  '#d64d8f',
+  '#7c5cbf',
+  '#5b6b8c',
+  '#8a5a44',
+];
 
 // Brainstorm board
 export const SHAPE_KINDS = ['rectangle', 'rounded', 'ellipse', 'diamond'];

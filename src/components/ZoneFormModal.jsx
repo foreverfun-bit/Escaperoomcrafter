@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Pipette } from 'lucide-react';
 import Modal from './ui/Modal.jsx';
 import Button from './ui/Button.jsx';
 import { TextField, TextArea } from './ui/Field.jsx';
@@ -67,6 +68,21 @@ export default function ZoneFormModal({ open, onClose, onSubmit, initial, puzzle
                 style={{ background: color }}
               />
             ))}
+            <label
+              title="Pick a custom color"
+              className={`relative flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-2 ${
+                ZONE_PALETTE.includes(form.color) ? 'border-dashed border-stone-600' : 'border-pink-400'
+              }`}
+              style={!ZONE_PALETTE.includes(form.color) ? { background: form.color } : undefined}
+            >
+              {ZONE_PALETTE.includes(form.color) && <Pipette size={13} className="text-stone-400" />}
+              <input
+                type="color"
+                value={form.color}
+                onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
+                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+              />
+            </label>
           </div>
         </div>
         <div className="flex gap-3">
