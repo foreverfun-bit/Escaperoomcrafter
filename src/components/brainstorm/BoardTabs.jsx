@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Plus, Pencil, Trash2, Check, X, Puzzle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Check, X, Puzzle, MapPin } from 'lucide-react';
 
-export default function BoardTabs({ boards, puzzles = [], activeId, onSelect, onCreate, onRename, onDelete }) {
+export default function BoardTabs({ boards, puzzles = [], zones = [], activeId, onSelect, onCreate, onRename, onDelete }) {
   const [renamingId, setRenamingId] = useState(null);
   const [renameValue, setRenameValue] = useState('');
   const puzzleName = (id) => puzzles.find((p) => p.id === id)?.name;
+  const zoneName = (id) => zones.find((z) => z.id === id)?.name;
 
   const startRename = (board) => {
     setRenamingId(board.id);
@@ -55,7 +56,13 @@ export default function BoardTabs({ boards, puzzles = [], activeId, onSelect, on
             </>
           ) : (
             <>
-              <button type="button" onClick={() => onSelect(board.id)} className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => onSelect(board.id)}
+                onDoubleClick={() => startRename(board)}
+                title="Double-click to rename"
+                className="flex items-center gap-1"
+              >
                 {board.name}
                 {puzzleName(board.puzzleId) && (
                   <span
@@ -66,8 +73,17 @@ export default function BoardTabs({ boards, puzzles = [], activeId, onSelect, on
                     {puzzleName(board.puzzleId)}
                   </span>
                 )}
+                {zoneName(board.zoneId) && (
+                  <span
+                    title={`Linked to zone: ${zoneName(board.zoneId)}`}
+                    className="flex items-center gap-0.5 rounded-full bg-stone-800 px-1.5 py-0.5 text-[10px] font-normal text-stone-400"
+                  >
+                    <MapPin size={9} />
+                    {zoneName(board.zoneId)}
+                  </span>
+                )}
               </button>
-              <span className="ml-0.5 hidden items-center gap-1 group-hover:flex">
+              <span className="ml-0.5 flex items-center gap-1 opacity-60 group-hover:opacity-100">
                 <button
                   type="button"
                   onClick={() => startRename(board)}

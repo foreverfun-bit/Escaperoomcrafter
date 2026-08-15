@@ -121,6 +121,7 @@ export const TABLES = {
       id: 'id',
       roomId: 'room_id',
       puzzleId: 'puzzle_id',
+      zoneId: 'zone_id',
       name: 'name',
       createdAt: 'created_at',
     }),

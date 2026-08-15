@@ -322,13 +322,16 @@ export function RoomsProvider({ children }) {
     setData((d) => {
       const affectedPuzzles = d.puzzles.filter((p) => p.zoneId === id);
       const affectedProps = d.props.filter((p) => p.zoneId === id);
+      const affectedBoards = d.brainstormBoards.filter((b) => b.zoneId === id);
       affectedPuzzles.forEach((p) => updateRow('puzzles', p.id, { zoneId: null }));
       affectedProps.forEach((p) => updateRow('props', p.id, { zoneId: null, x: null, y: null, w: null, h: null }));
+      affectedBoards.forEach((b) => updateRow('brainstormBoards', b.id, { zoneId: null }));
       return {
         ...d,
         zones: d.zones.filter((z) => z.id !== id),
         puzzles: d.puzzles.map((p) => (p.zoneId === id ? { ...p, zoneId: null } : p)),
         props: d.props.map((p) => (p.zoneId === id ? { ...p, zoneId: null, x: null, y: null, w: null, h: null } : p)),
+        brainstormBoards: d.brainstormBoards.map((b) => (b.zoneId === id ? { ...b, zoneId: null } : b)),
       };
     });
     deleteRow('zones', id);
