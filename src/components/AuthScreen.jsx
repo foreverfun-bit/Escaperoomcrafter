@@ -10,11 +10,9 @@ export default function AuthScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
-  const [signedUp, setSignedUp] = useState(false);
 
   const switchMode = (next) => {
     setMode(next);
-    setSignedUp(false);
     clearAuthError();
   };
 
@@ -22,12 +20,8 @@ export default function AuthScreen() {
     e.preventDefault();
     if (!email.trim() || !password) return;
     setBusy(true);
-    if (mode === 'sign-up') {
-      const ok = await signUp(email.trim(), password);
-      if (ok) setSignedUp(true);
-    } else {
-      await signIn(email.trim(), password);
-    }
+    if (mode === 'sign-up') await signUp(email.trim(), password);
+    else await signIn(email.trim(), password);
     setBusy(false);
   };
 
@@ -66,43 +60,31 @@ export default function AuthScreen() {
             </button>
           </div>
 
-          {signedUp ? (
-            <div className="space-y-3 text-center">
-              <p className="text-sm text-stone-300">
-                Account created. Check <span className="text-stone-100">{email}</span> for a confirmation
-                link, then sign in.
-              </p>
-              <Button variant="secondary" className="w-full" onClick={() => switchMode('sign-in')}>
-                Back to sign in
-              </Button>
-            </div>
-          ) : (
-            <form className="space-y-3" onSubmit={handleSubmit}>
-              <TextField
-                label="Email"
-                type="email"
-                required
-                autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-              />
-              <TextField
-                label="Password"
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={mode === 'sign-up' ? 'At least 6 characters' : '••••••••'}
-              />
-              {authError && <p className="text-xs text-rose-400">{authError}</p>}
-              <Button type="submit" className="w-full" disabled={busy}>
-                {busy ? <Loader2 size={14} className="animate-spin" /> : null}
-                {mode === 'sign-up' ? 'Create account' : 'Sign in'}
-              </Button>
-            </form>
-          )}
+          <form className="space-y-3" onSubmit={handleSubmit}>
+            <TextField
+              label="Email"
+              type="email"
+              required
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+            />
+            <TextField
+              label="Password"
+              type="password"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder={mode === 'sign-up' ? 'At least 6 characters' : '••••••••'}
+            />
+            {authError && <p className="text-xs text-rose-400">{authError}</p>}
+            <Button type="submit" className="w-full" disabled={busy}>
+              {busy ? <Loader2 size={14} className="animate-spin" /> : null}
+              {mode === 'sign-up' ? 'Create account' : 'Sign in'}
+            </Button>
+          </form>
         </div>
 
         <p className="mt-4 text-center text-xs text-stone-600">
