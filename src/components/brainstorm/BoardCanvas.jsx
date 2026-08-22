@@ -151,7 +151,9 @@ export default function BoardCanvas({
   return (
     <div
       ref={canvasRef}
-      className="board-canvas relative shrink-0 rounded-xl border border-stone-800 bg-stone-950"
+      className={`board-canvas relative shrink-0 rounded-xl border border-stone-800 bg-stone-950 ${
+        tool === 'draw' ? 'touch-none' : ''
+      }`}
       style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}
       onDoubleClick={handleCanvasDoubleClick}
       onPointerDown={handleCanvasPointerDown}
