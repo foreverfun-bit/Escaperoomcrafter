@@ -1,6 +1,7 @@
-export function Card({ className = '', children, ...props }) {
+export function Card({ className = '', children, ref, ...props }) {
   return (
     <div
+      ref={ref}
       className={`rounded-xl border border-stone-800 bg-stone-900/60 ${className}`}
       {...props}
     >

@@ -2,31 +2,10 @@ import { useOutletContext } from 'react-router-dom';
 import { useMemo } from 'react';
 import { ArrowDown, GitBranch } from 'lucide-react';
 import { usePuzzles, useZones } from '../store/RoomsContext.jsx';
+import { computeLayers } from '../store/puzzleFlow.js';
 import { Card, CardBody } from '../components/ui/Card.jsx';
 import Badge from '../components/ui/Badge.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
-
-function computeLayers(puzzles) {
-  const byId = new Map(puzzles.map((p) => [p.id, p]));
-  const layerOf = new Map();
-
-  function depthOf(id, seen) {
-    if (layerOf.has(id)) return layerOf.get(id);
-    if (seen.has(id)) return 0; // dependency cycle guard
-    seen.add(id);
-    const puzzle = byId.get(id);
-    const deps = (puzzle?.dependsOn || []).filter((depId) => byId.has(depId));
-    const depth = deps.length === 0 ? 0 : 1 + Math.max(...deps.map((depId) => depthOf(depId, seen)));
-    layerOf.set(id, depth);
-    return depth;
-  }
-
-  puzzles.forEach((p) => depthOf(p.id, new Set()));
-  const maxLayer = puzzles.length ? Math.max(...puzzles.map((p) => layerOf.get(p.id) || 0)) : -1;
-  const layers = Array.from({ length: maxLayer + 1 }, () => []);
-  puzzles.forEach((p) => layers[layerOf.get(p.id) || 0].push(p));
-  return layers;
-}
 
 export default function Flow() {
   const { room } = useOutletContext();
