@@ -8,6 +8,7 @@ import { Card } from '../components/ui/Card.jsx';
 import Badge from '../components/ui/Badge.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
+import Lightbox from '../components/ui/Lightbox.jsx';
 import PropFormModal from '../components/PropFormModal.jsx';
 
 export default function Props() {
@@ -18,6 +19,7 @@ export default function Props() {
   const zones = useZones(room.id);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [lightbox, setLightbox] = useState(null);
   const { requestConfirm, dialogProps } = useConfirmDialog();
 
   const puzzleName = (id) => puzzles.find((p) => p.id === id)?.name || 'Unknown';
@@ -103,7 +105,8 @@ export default function Props() {
                           <img
                             src={p.photos[0].dataUrl}
                             alt=""
-                            className="h-9 w-9 shrink-0 rounded-md border border-stone-800 object-cover"
+                            onClick={() => setLightbox(p.photos[0].dataUrl)}
+                            className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-stone-800 object-cover"
                           />
                         ) : null}
                         <div>
@@ -167,6 +170,7 @@ export default function Props() {
       />
 
       <ConfirmDialog {...dialogProps} />
+      <Lightbox src={lightbox} onClose={() => setLightbox(null)} />
     </div>
   );
 }

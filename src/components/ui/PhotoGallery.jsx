@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
-import { ImagePlus, Trash2, X } from 'lucide-react';
+import { ImagePlus, Trash2 } from 'lucide-react';
 import { filesToPhotos } from '../../lib/image.js';
+import Lightbox from './Lightbox.jsx';
 
 export default function PhotoGallery({ photos, onAdd, onRemove, label = 'Photos', emptyText = 'No photos yet.' }) {
   const inputRef = useRef(null);
@@ -46,7 +47,7 @@ export default function PhotoGallery({ photos, onAdd, onRemove, label = 'Photos'
                 src={photo.dataUrl}
                 alt=""
                 className="h-full w-full cursor-pointer object-cover"
-                onClick={() => setLightbox(photo)}
+                onClick={() => setLightbox(photo.dataUrl)}
               />
               <button
                 type="button"
@@ -61,21 +62,7 @@ export default function PhotoGallery({ photos, onAdd, onRemove, label = 'Photos'
         </div>
       )}
 
-      {lightbox && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-6"
-          onClick={() => setLightbox(null)}
-        >
-          <img src={lightbox.dataUrl} alt="" className="max-h-full max-w-full rounded-lg object-contain" />
-          <button
-            type="button"
-            onClick={() => setLightbox(null)}
-            className="absolute right-5 top-5 flex h-9 w-9 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
-          >
-            <X size={18} />
-          </button>
-        </div>
-      )}
+      <Lightbox src={lightbox} onClose={() => setLightbox(null)} />
     </div>
   );
 }
