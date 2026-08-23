@@ -37,64 +37,58 @@ export default function Puzzles() {
     [puzzles, depthOf],
   );
 
-  const [liveOrder, setLiveOrder] = useState(null); // string[] of puzzle ids while dragging
-  const [draggingId, setDraggingId] = useState(null);
+  // Dragging never reorders the underlying list mid-gesture (fast real
+  // pointer movement fires far more events than React can re-render and
+  // settle card refs between, which made an earlier swap-as-you-go version
+  // unreliable in practice despite working in slower simulated tests).
+  // Instead the dragged card just visually follows the pointer via a
+  // transform - immediate feedback for any movement, however small - and
+  // the drop position is computed once, at release, against the other
+  // cards' original (never-moved) positions.
+  const [dragId, setDragId] = useState(null);
+  const [dragOffset, setDragOffset] = useState(0);
   const cardRefs = useRef(new Map());
-  const orderRef = useRef(null);
 
-  const displayIds = liveOrder || orderedIds;
-  const displayPuzzles = displayIds.map((id) => puzzles.find((p) => p.id === id)).filter(Boolean);
+  const displayPuzzles = orderedIds.map((id) => puzzles.find((p) => p.id === id)).filter(Boolean);
 
   const handleDragHandlePointerDown = (event, puzzleId) => {
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
-    orderRef.current = orderedIds;
-    setDraggingId(puzzleId);
-    setLiveOrder(orderedIds);
+    const startY = event.clientY;
+    setDragId(puzzleId);
+    setDragOffset(0);
 
     const onMove = (moveEvent) => {
-      const order = orderRef.current;
-      const idx = order.indexOf(puzzleId);
-      const y = moveEvent.clientY;
-
-      if (idx > 0) {
-        const aboveEl = cardRefs.current.get(order[idx - 1]);
-        const rect = aboveEl?.getBoundingClientRect();
-        if (rect && y < rect.top + rect.height / 2) {
-          const next = [...order];
-          [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
-          orderRef.current = next;
-          setLiveOrder(next);
-          return;
-        }
-      }
-      if (idx < order.length - 1) {
-        const belowEl = cardRefs.current.get(order[idx + 1]);
-        const rect = belowEl?.getBoundingClientRect();
-        if (rect && y > rect.top + rect.height / 2) {
-          const next = [...order];
-          [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
-          orderRef.current = next;
-          setLiveOrder(next);
-        }
-      }
+      setDragOffset(moveEvent.clientY - startY);
     };
-    const onUp = () => {
+    const onUp = (upEvent) => {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
-      const order = orderRef.current;
-      const idx = order.indexOf(puzzleId);
-      const aboveId = idx > 0 ? order[idx - 1] : null;
-      const belowId = idx < order.length - 1 ? order[idx + 1] : null;
+
+      const others = orderedIds.filter((id) => id !== puzzleId);
+      let targetIndex = 0;
+      others.forEach((id) => {
+        const rect = cardRefs.current.get(id)?.getBoundingClientRect();
+        if (rect && upEvent.clientY > rect.top + rect.height / 2) targetIndex += 1;
+      });
+      const aboveId = targetIndex > 0 ? others[targetIndex - 1] : null;
+      const belowId = targetIndex < others.length ? others[targetIndex] : null;
+
+      setDragId(null);
+      setDragOffset(0);
+
+      const originalIndex = orderedIds.indexOf(puzzleId);
+      if (targetIndex === originalIndex) return; // dropped back where it started
+
       updatePuzzle(puzzleId, { dependsOn: aboveId ? [aboveId] : [] });
 
       // Splice into an existing simple chain: if the puzzle now below was
       // directly (and only) chained to whatever is now above, re-point it
       // through the dragged puzzle instead - otherwise dropping into the
       // middle of a chain would tie both puzzles at the same depth and the
-      // list would visually snap back out of drop order. Left alone for
-      // anything more complex (multiple requirements) so a drag never
-      // silently clobbers a manually-set branching setup.
+      // list would sort back out of drop order. Left alone for anything
+      // more complex (multiple requirements) so a drag never silently
+      // clobbers a manually-set branching setup.
       if (belowId) {
         const belowPuzzle = puzzles.find((p) => p.id === belowId);
         const belowWasChainedToAbove = aboveId
@@ -102,10 +96,6 @@ export default function Puzzles() {
           : belowPuzzle?.dependsOn.length === 0;
         if (belowWasChainedToAbove) updatePuzzle(belowId, { dependsOn: [puzzleId] });
       }
-
-      setDraggingId(null);
-      setLiveOrder(null);
-      orderRef.current = null;
     };
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
@@ -168,7 +158,12 @@ export default function Puzzles() {
                   if (el) cardRefs.current.set(p.id, el);
                   else cardRefs.current.delete(p.id);
                 }}
-                className={draggingId === p.id ? 'opacity-60' : ''}
+                className={dragId === p.id ? 'relative z-10 shadow-2xl' : ''}
+                style={
+                  dragId === p.id
+                    ? { transform: `translateY(${dragOffset}px)`, transition: 'none' }
+                    : undefined
+                }
               >
                 <CardBody>
                   <div className="flex items-start justify-between gap-4">
