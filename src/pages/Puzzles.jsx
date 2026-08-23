@@ -98,6 +98,23 @@ export default function Puzzles() {
       const originalIndex = orderedIds.indexOf(puzzleId);
       if (targetIndex === originalIndex) return; // dropped back where it started
 
+      // Unsplice from wherever the puzzle used to be: if something was
+      // chained directly (and only) to the dragged puzzle at its OLD
+      // position, close that gap by pointing it at what the dragged puzzle
+      // used to depend on. Without this, moving a puzzle away from a spot
+      // leaves a stale link behind - and if the puzzle is later dropped back
+      // near its old neighbors, that stale link and the new one it picks up
+      // can both point at it, tying two puzzles at the same depth again
+      // (which is what made upward drags "not stick").
+      const draggedPuzzle = puzzles.find((p) => p.id === puzzleId);
+      const oldDependsOn = draggedPuzzle?.dependsOn || [];
+      const oldSuccessor = puzzles.find(
+        (p) => p.id !== puzzleId && p.dependsOn.length === 1 && p.dependsOn[0] === puzzleId,
+      );
+      if (oldSuccessor && oldSuccessor.id !== belowId) {
+        updatePuzzle(oldSuccessor.id, { dependsOn: oldDependsOn });
+      }
+
       updatePuzzle(puzzleId, { dependsOn: aboveId ? [aboveId] : [] });
 
       // Splice into an existing simple chain: if the puzzle now below was
