@@ -32,10 +32,28 @@ export default function Puzzles() {
   // dropped below - a shortcut for the common straight-chain case; more
   // complex/branching requirements are still set via the edit form.
   const depthOf = useMemo(() => computeDepths(puzzles), [puzzles]);
-  const orderedIds = useMemo(
-    () => [...puzzles].sort((a, b) => (depthOf.get(a.id) || 0) - (depthOf.get(b.id) || 0)).map((p) => p.id),
-    [puzzles, depthOf],
-  );
+  // A drag updates two puzzles' dependsOn as separate writes, which are
+  // separately confirmed by the realtime listener - if one confirmation
+  // lands before the other, the two can briefly tie at the same depth again
+  // (the same tie a drop is meant to resolve). Breaking ties by raw list
+  // order made that transient state visibly reshuffle the whole list until
+  // both confirmations landed. Breaking ties by the last known order
+  // instead means a tie holds its position rather than jumping around.
+  const lastOrderRef = useRef([]);
+  const orderedIds = useMemo(() => {
+    const previousIndex = new Map(lastOrderRef.current.map((id, i) => [id, i]));
+    const sorted = [...puzzles]
+      .sort((a, b) => {
+        const depthDiff = (depthOf.get(a.id) || 0) - (depthOf.get(b.id) || 0);
+        if (depthDiff !== 0) return depthDiff;
+        const ai = previousIndex.has(a.id) ? previousIndex.get(a.id) : Infinity;
+        const bi = previousIndex.has(b.id) ? previousIndex.get(b.id) : Infinity;
+        return ai - bi;
+      })
+      .map((p) => p.id);
+    lastOrderRef.current = sorted;
+    return sorted;
+  }, [puzzles, depthOf]);
 
   // Dragging never reorders the underlying list mid-gesture (fast real
   // pointer movement fires far more events than React can re-render and
