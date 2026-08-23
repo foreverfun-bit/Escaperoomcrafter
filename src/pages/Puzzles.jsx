@@ -1,6 +1,6 @@
 import { useOutletContext, Link } from 'react-router-dom';
 import { useMemo, useRef, useState } from 'react';
-import { Plus, Puzzle as PuzzleIcon, Pencil, Trash2, Lightbulb, ArrowRight, LayoutGrid, GripVertical } from 'lucide-react';
+import { Plus, Puzzle as PuzzleIcon, Pencil, Trash2, Lightbulb, ArrowRight, LayoutGrid, GripVertical, Music } from 'lucide-react';
 import { useRooms, usePuzzles, useZones, useBoards } from '../store/RoomsContext.jsx';
 import { computeDepths } from '../store/puzzleFlow.js';
 import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
@@ -250,6 +250,16 @@ export default function Puzzles() {
                         <div className="mt-2 flex items-center gap-1 text-xs text-stone-500">
                           <Lightbulb size={12} />
                           {p.hints.length} hint{p.hints.length === 1 ? '' : 's'}
+                        </div>
+                      )}
+                      {p.audioClips?.length > 0 && (
+                        <div className="mt-2 space-y-1.5">
+                          {p.audioClips.map((clip) => (
+                            <div key={clip.id} className="flex items-center gap-1.5">
+                              <Music size={12} className="shrink-0 text-stone-500" />
+                              <audio controls src={clip.url} className="h-7 max-w-xs" />
+                            </div>
+                          ))}
                         </div>
                       )}
                       {boardsFor(p.id).length > 0 && (
