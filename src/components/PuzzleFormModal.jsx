@@ -5,6 +5,7 @@ import { TextField, TextArea, Select } from './ui/Field.jsx';
 import MultiSelect from './ui/MultiSelect.jsx';
 import HintsEditor from './HintsEditor.jsx';
 import AudioGallery from './ui/AudioGallery.jsx';
+import PhotoGallery from './ui/PhotoGallery.jsx';
 import { PUZZLE_TYPES, PUZZLE_STATUSES } from '../store/constants.js';
 
 const BLANK = {
@@ -16,6 +17,7 @@ const BLANK = {
   solution: '',
   hints: [],
   audioClips: [],
+  photos: [],
   dependsOn: [],
   notes: '',
 };
@@ -80,6 +82,12 @@ export default function PuzzleFormModal({ open, onClose, onSubmit, initial, zone
           onAdd={(newClips) => setForm((f) => ({ ...f, audioClips: [...f.audioClips, ...newClips] }))}
           onRemove={(id) => setForm((f) => ({ ...f, audioClips: f.audioClips.filter((c) => c.id !== id) }))}
           emptyText="No audio clues or voice hints yet."
+        />
+        <PhotoGallery
+          photos={form.photos}
+          onAdd={(newPhotos) => setForm((f) => ({ ...f, photos: [...f.photos, ...newPhotos] }))}
+          onRemove={(id) => setForm((f) => ({ ...f, photos: f.photos.filter((p) => p.id !== id) }))}
+          emptyText="No reference photos yet."
         />
         <MultiSelect
           label="Depends on (must be solved first)"

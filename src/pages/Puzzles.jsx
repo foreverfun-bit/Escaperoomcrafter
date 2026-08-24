@@ -9,10 +9,12 @@ import { Card, CardBody } from '../components/ui/Card.jsx';
 import Badge from '../components/ui/Badge.jsx';
 import EmptyState from '../components/ui/EmptyState.jsx';
 import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
+import Lightbox from '../components/ui/Lightbox.jsx';
 import PuzzleFormModal from '../components/PuzzleFormModal.jsx';
 
 export default function Puzzles() {
   const { room } = useOutletContext();
+  const [lightbox, setLightbox] = useState(null);
   const { addPuzzle, updatePuzzle, deletePuzzle } = useRooms();
   const puzzles = usePuzzles(room.id);
   const zones = useZones(room.id);
@@ -224,6 +226,19 @@ export default function Puzzles() {
                       {p.description && (
                         <p className="mt-1.5 text-sm text-stone-400">{p.description}</p>
                       )}
+                      {p.photos?.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {p.photos.map((photo) => (
+                            <img
+                              key={photo.id}
+                              src={photo.dataUrl}
+                              alt=""
+                              onClick={() => setLightbox(photo.dataUrl)}
+                              className="h-12 w-12 cursor-pointer rounded-md border border-stone-800 object-cover"
+                            />
+                          ))}
+                        </div>
+                      )}
 
                       {p.dependsOn.length > 0 && (
                         <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-stone-500">
@@ -304,6 +319,7 @@ export default function Puzzles() {
       />
 
       <ConfirmDialog {...dialogProps} />
+      <Lightbox src={lightbox} onClose={() => setLightbox(null)} />
     </div>
   );
 }

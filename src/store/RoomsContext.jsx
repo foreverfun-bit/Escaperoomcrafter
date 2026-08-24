@@ -177,6 +177,7 @@ export function RoomsProvider({ children }) {
       solution: '',
       hints: [],
       audioClips: [],
+      photos: [],
       dependsOn: [],
       zoneId: null,
       status: 'Idea',
