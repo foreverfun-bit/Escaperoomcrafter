@@ -1,26 +1,22 @@
 import { useRef, useState } from 'react';
 import { Music, Trash2 } from 'lucide-react';
-import { uploadAudioClips, deleteAudioClip } from '../../lib/audio.js';
-import { useAuth } from '../../store/AuthContext.jsx';
+import { filesToAudioClips } from '../../lib/audio.js';
 
 export default function AudioGallery({ clips, onAdd, onRemove, label = 'Audio clips', emptyText = 'No audio clips yet.' }) {
-  const { user } = useAuth();
   const inputRef = useRef(null);
   const [busy, setBusy] = useState(false);
+  const [errors, setErrors] = useState([]);
 
   const handleFiles = async (e) => {
     const files = Array.from(e.target.files || []);
     e.target.value = '';
     if (files.length === 0) return;
     setBusy(true);
-    const newClips = await uploadAudioClips(files, user.id);
+    const existingBytes = clips.reduce((sum, c) => sum + (c.bytes || 0), 0);
+    const { clips: newClips, errors: newErrors } = await filesToAudioClips(files, existingBytes);
     setBusy(false);
+    setErrors(newErrors);
     if (newClips.length) onAdd(newClips);
-  };
-
-  const handleRemove = (clip) => {
-    onRemove(clip.id);
-    deleteAudioClip(clip.path);
   };
 
   return (
@@ -34,10 +30,20 @@ export default function AudioGallery({ clips, onAdd, onRemove, label = 'Audio cl
           className="inline-flex items-center gap-1 text-xs font-medium text-pink-300 hover:underline disabled:opacity-50"
         >
           <Music size={13} />
-          {busy ? 'Uploading…' : 'Add audio'}
+          {busy ? 'Adding…' : 'Add audio'}
         </button>
         <input ref={inputRef} type="file" accept="audio/*" multiple className="hidden" onChange={handleFiles} />
       </div>
+
+      {errors.length > 0 && (
+        <ul className="mt-1.5 space-y-0.5">
+          {errors.map((err, i) => (
+            <li key={i} className="text-xs text-rose-400">
+              {err}
+            </li>
+          ))}
+        </ul>
+      )}
 
       {clips.length === 0 ? (
         <p className="mt-1.5 text-xs text-stone-600">{emptyText}</p>
@@ -50,11 +56,11 @@ export default function AudioGallery({ clips, onAdd, onRemove, label = 'Audio cl
             >
               <div className="min-w-0 flex-1">
                 <p className="mb-1 truncate text-xs text-stone-400">{clip.name}</p>
-                <audio controls src={clip.url} className="h-8 w-full" />
+                <audio controls src={clip.dataUrl} className="h-8 w-full" />
               </div>
               <button
                 type="button"
-                onClick={() => handleRemove(clip)}
+                onClick={() => onRemove(clip.id)}
                 title="Remove audio clip"
                 className="shrink-0 rounded-md p-1.5 text-stone-500 hover:bg-stone-800 hover:text-rose-400"
               >
