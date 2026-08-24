@@ -272,7 +272,7 @@ export default function Puzzles() {
                           {p.audioClips.map((clip) => (
                             <div key={clip.id} className="flex items-center gap-1.5">
                               <Music size={12} className="shrink-0 text-stone-500" />
-                              <audio controls src={clip.dataUrl} className="h-7 max-w-xs" />
+                              <audio controls src={clip.url} className="h-7 max-w-xs" />
                             </div>
                           ))}
                         </div>

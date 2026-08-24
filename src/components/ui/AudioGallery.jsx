@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react';
 import { Music, Trash2 } from 'lucide-react';
-import { filesToAudioClips } from '../../lib/audio.js';
+import { uploadAudioClips, deleteAudioClip } from '../../lib/audio.js';
+import { useAuth } from '../../store/AuthContext.jsx';
 
 export default function AudioGallery({ clips, onAdd, onRemove, label = 'Audio clips', emptyText = 'No audio clips yet.' }) {
+  const { user } = useAuth();
   const inputRef = useRef(null);
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState([]);
@@ -12,11 +14,15 @@ export default function AudioGallery({ clips, onAdd, onRemove, label = 'Audio cl
     e.target.value = '';
     if (files.length === 0) return;
     setBusy(true);
-    const existingBytes = clips.reduce((sum, c) => sum + (c.bytes || 0), 0);
-    const { clips: newClips, errors: newErrors } = await filesToAudioClips(files, existingBytes);
+    const { clips: newClips, errors: newErrors } = await uploadAudioClips(files, user.id);
     setBusy(false);
     setErrors(newErrors);
     if (newClips.length) onAdd(newClips);
+  };
+
+  const handleRemove = (clip) => {
+    onRemove(clip.id);
+    deleteAudioClip(clip.path);
   };
 
   return (
@@ -30,7 +36,7 @@ export default function AudioGallery({ clips, onAdd, onRemove, label = 'Audio cl
           className="inline-flex items-center gap-1 text-xs font-medium text-pink-300 hover:underline disabled:opacity-50"
         >
           <Music size={13} />
-          {busy ? 'Adding…' : 'Add audio'}
+          {busy ? 'Uploading…' : 'Add audio'}
         </button>
         <input ref={inputRef} type="file" accept="audio/*" multiple className="hidden" onChange={handleFiles} />
       </div>
@@ -56,11 +62,11 @@ export default function AudioGallery({ clips, onAdd, onRemove, label = 'Audio cl
             >
               <div className="min-w-0 flex-1">
                 <p className="mb-1 truncate text-xs text-stone-400">{clip.name}</p>
-                <audio controls src={clip.dataUrl} className="h-8 w-full" />
+                <audio controls src={clip.url} className="h-8 w-full" />
               </div>
               <button
                 type="button"
-                onClick={() => onRemove(clip.id)}
+                onClick={() => handleRemove(clip)}
                 title="Remove audio clip"
                 className="shrink-0 rounded-md p-1.5 text-stone-500 hover:bg-stone-800 hover:text-rose-400"
               >

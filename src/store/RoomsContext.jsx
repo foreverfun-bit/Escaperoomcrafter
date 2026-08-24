@@ -3,6 +3,7 @@ import { loadData, saveData, downloadJSON, parseImportedJSON, emptyData } from '
 import { ZONE_PALETTE } from './constants';
 import { useAuth } from './AuthContext.jsx';
 import { fetchAll, insertRow, updateRow, deleteRow, subscribeAll } from './db.js';
+import { deleteAudioClip } from '../lib/audio.js';
 
 const RoomsContext = createContext(null);
 
@@ -202,6 +203,8 @@ export function RoomsProvider({ children }) {
 
   const deletePuzzle = useCallback((id) => {
     setData((d) => {
+      const deletedPuzzle = d.puzzles.find((p) => p.id === id);
+      (deletedPuzzle?.audioClips || []).forEach((clip) => deleteAudioClip(clip.path));
       const affectedProps = d.props.filter((p) => (p.puzzleIds || []).includes(id));
       const affectedPuzzles = d.puzzles.filter((p) => p.id !== id && p.dependsOn.includes(id));
       const affectedTasks = d.tasks.filter((t) => t.linkedPuzzleId === id);
