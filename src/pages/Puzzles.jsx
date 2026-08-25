@@ -16,7 +16,7 @@ import TaskFormModal from '../components/TaskFormModal.jsx';
 export default function Puzzles() {
   const { room } = useOutletContext();
   const [lightbox, setLightbox] = useState(null);
-  const { addPuzzle, updatePuzzle, deletePuzzle, addTask, updateTask, deleteTask } = useRooms();
+  const { addPuzzle, updatePuzzle, deletePuzzle, addTask, updateTask, deleteTask, updateProp } = useRooms();
   const puzzles = usePuzzles(room.id);
   const zones = useZones(room.id);
   const boards = useBoards(room.id);
@@ -154,9 +154,20 @@ export default function Puzzles() {
     setEditing(p);
     setFormOpen(true);
   };
-  const handleSubmit = (values) => {
+  const handleSubmit = (values, linkedPropIds) => {
+    const puzzleId = editing ? editing.id : addPuzzle(room.id, values);
     if (editing) updatePuzzle(editing.id, values);
-    else addPuzzle(room.id, values);
+    // Puzzle<->prop linking is stored on the prop (prop.puzzleIds) - mirror
+    // whatever the form's "Props used in this puzzle" field ended up with
+    // by adding/removing this puzzle's id from each affected prop.
+    if (linkedPropIds) {
+      props.forEach((pr) => {
+        const shouldHave = linkedPropIds.includes(pr.id);
+        const has = pr.puzzleIds.includes(puzzleId);
+        if (shouldHave && !has) updateProp(pr.id, { puzzleIds: [...pr.puzzleIds, puzzleId] });
+        else if (!shouldHave && has) updateProp(pr.id, { puzzleIds: pr.puzzleIds.filter((id) => id !== puzzleId) });
+      });
+    }
   };
   const handleDelete = (p) => {
     requestConfirm({
@@ -383,6 +394,7 @@ export default function Puzzles() {
         initial={editing}
         zones={zones}
         otherPuzzles={puzzles.filter((p) => p.id !== editing?.id)}
+        props={props}
       />
 
       <TaskFormModal

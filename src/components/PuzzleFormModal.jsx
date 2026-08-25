@@ -22,11 +22,20 @@ const BLANK = {
   notes: '',
 };
 
-export default function PuzzleFormModal({ open, onClose, onSubmit, initial, zones, otherPuzzles }) {
+export default function PuzzleFormModal({ open, onClose, onSubmit, initial, zones, otherPuzzles, props = [] }) {
   const [form, setForm] = useState(BLANK);
+  // Which props this puzzle is used with is actually stored on the prop
+  // (prop.puzzleIds), the same field the Props tab's "Used in puzzles"
+  // field edits - this just lets the puzzle form edit that same
+  // relationship from the other side, so it's kept separate from `form`
+  // and diffed against props on submit rather than saved onto the puzzle.
+  const [linkedPropIds, setLinkedPropIds] = useState([]);
 
   useEffect(() => {
-    if (open) setForm(initial ? { ...BLANK, ...initial } : BLANK);
+    if (open) {
+      setForm(initial ? { ...BLANK, ...initial } : BLANK);
+      setLinkedPropIds(initial ? props.filter((pr) => pr.puzzleIds.includes(initial.id)).map((pr) => pr.id) : []);
+    }
   }, [open, initial]);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
@@ -34,11 +43,14 @@ export default function PuzzleFormModal({ open, onClose, onSubmit, initial, zone
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!form.name.trim()) return;
-    onSubmit({
-      ...form,
-      zoneId: form.zoneId || null,
-      hints: form.hints.filter((h) => h.trim() !== ''),
-    });
+    onSubmit(
+      {
+        ...form,
+        zoneId: form.zoneId || null,
+        hints: form.hints.filter((h) => h.trim() !== ''),
+      },
+      linkedPropIds,
+    );
     onClose();
   };
 
@@ -88,6 +100,13 @@ export default function PuzzleFormModal({ open, onClose, onSubmit, initial, zone
           onAdd={(newPhotos) => setForm((f) => ({ ...f, photos: [...f.photos, ...newPhotos] }))}
           onRemove={(id) => setForm((f) => ({ ...f, photos: f.photos.filter((p) => p.id !== id) }))}
           emptyText="No reference photos yet."
+        />
+        <MultiSelect
+          label="Props used in this puzzle"
+          options={props.map((pr) => ({ value: pr.id, label: pr.name }))}
+          selected={linkedPropIds}
+          onChange={setLinkedPropIds}
+          emptyText="No props yet — add some on the Props tab."
         />
         <MultiSelect
           label="Depends on (must be solved first)"
