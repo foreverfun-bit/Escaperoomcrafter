@@ -31,10 +31,10 @@ export default function Puzzles() {
 
   const puzzleName = (id) => puzzles.find((p) => p.id === id)?.name || 'Unknown';
   const zoneName = (id) => zones.find((z) => z.id === id)?.name;
-  const propName = (id) => props.find((pr) => pr.id === id)?.name;
   const unlocksOf = (id) => puzzles.filter((p) => p.dependsOn.includes(id));
   const boardsFor = (puzzleId) => boards.filter((b) => b.puzzleId === puzzleId);
   const tasksFor = (puzzleId) => tasks.filter((t) => t.linkedPuzzleId === puzzleId);
+  const propsFor = (puzzleId) => props.filter((pr) => pr.puzzleIds.includes(puzzleId));
 
   // Display order follows each puzzle's depth in the dependency chain
   // (same computation the Flow page uses), so the list reads top-to-bottom
@@ -253,6 +253,14 @@ export default function Puzzles() {
                             {zoneName(p.zoneId)}
                           </span>
                         )}
+                        {propsFor(p.id).map((pr) => (
+                          <span
+                            key={pr.id}
+                            className="rounded-full bg-stone-800 px-2 py-0.5 text-[11px] text-stone-400"
+                          >
+                            📦 {pr.name}
+                          </span>
+                        ))}
                       </div>
                       {p.description && (
                         <p className="mt-1.5 text-sm text-stone-400">{p.description}</p>
@@ -321,11 +329,6 @@ export default function Puzzles() {
                                 {t.title}
                               </button>
                               <Badge>{t.status}</Badge>
-                              {propName(t.linkedPropId) && (
-                                <span className="rounded-full bg-stone-800 px-2 py-0.5 text-[11px] text-stone-400">
-                                  📦 {propName(t.linkedPropId)}
-                                </span>
-                              )}
                               <button
                                 type="button"
                                 onClick={() => handleTaskDelete(t)}
