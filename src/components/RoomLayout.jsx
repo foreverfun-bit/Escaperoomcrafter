@@ -6,12 +6,12 @@ import EmptyState from './ui/EmptyState.jsx';
 
 const NAV_ITEMS = [
   { to: '', label: 'Overview', icon: LayoutDashboard, end: true },
-  { to: 'brainstorm', label: 'Brainstorm', icon: Lightbulb },
   { to: 'puzzles', label: 'Puzzles & Clues', icon: Puzzle },
   { to: 'props', label: 'Props & Inventory', icon: Package },
   { to: 'layout', label: 'Room Layout', icon: Map },
   { to: 'flow', label: 'Flow', icon: GitBranch },
   { to: 'tasks', label: 'Build Tasks', icon: ListChecks },
+  { to: 'brainstorm', label: 'Brainstorm', icon: Lightbulb },
 ];
 
 export default function RoomLayout() {

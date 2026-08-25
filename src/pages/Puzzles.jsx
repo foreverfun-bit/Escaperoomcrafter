@@ -1,7 +1,7 @@
 import { useOutletContext, Link } from 'react-router-dom';
 import { useMemo, useRef, useState } from 'react';
-import { Plus, Puzzle as PuzzleIcon, Pencil, Trash2, Lightbulb, ArrowRight, LayoutGrid, GripVertical, Music } from 'lucide-react';
-import { useRooms, usePuzzles, useZones, useBoards } from '../store/RoomsContext.jsx';
+import { Plus, Puzzle as PuzzleIcon, Pencil, Trash2, Lightbulb, ArrowRight, LayoutGrid, GripVertical, Music, ListChecks, X } from 'lucide-react';
+import { useRooms, usePuzzles, useZones, useBoards, useTasks, useProps } from '../store/RoomsContext.jsx';
 import { computeDepths } from '../store/puzzleFlow.js';
 import { useConfirmDialog } from '../hooks/useConfirmDialog.js';
 import Button from '../components/ui/Button.jsx';
@@ -11,22 +11,30 @@ import EmptyState from '../components/ui/EmptyState.jsx';
 import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
 import Lightbox from '../components/ui/Lightbox.jsx';
 import PuzzleFormModal from '../components/PuzzleFormModal.jsx';
+import TaskFormModal from '../components/TaskFormModal.jsx';
 
 export default function Puzzles() {
   const { room } = useOutletContext();
   const [lightbox, setLightbox] = useState(null);
-  const { addPuzzle, updatePuzzle, deletePuzzle } = useRooms();
+  const { addPuzzle, updatePuzzle, deletePuzzle, addTask, updateTask, deleteTask } = useRooms();
   const puzzles = usePuzzles(room.id);
   const zones = useZones(room.id);
   const boards = useBoards(room.id);
+  const tasks = useTasks(room.id);
+  const props = useProps(room.id);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [taskFormOpen, setTaskFormOpen] = useState(false);
+  const [taskEditing, setTaskEditing] = useState(null);
+  const [taskPuzzleId, setTaskPuzzleId] = useState(null);
   const { requestConfirm, dialogProps } = useConfirmDialog();
 
   const puzzleName = (id) => puzzles.find((p) => p.id === id)?.name || 'Unknown';
   const zoneName = (id) => zones.find((z) => z.id === id)?.name;
+  const propName = (id) => props.find((pr) => pr.id === id)?.name;
   const unlocksOf = (id) => puzzles.filter((p) => p.dependsOn.includes(id));
   const boardsFor = (puzzleId) => boards.filter((b) => b.puzzleId === puzzleId);
+  const tasksFor = (puzzleId) => tasks.filter((t) => t.linkedPuzzleId === puzzleId);
 
   // Display order follows each puzzle's depth in the dependency chain
   // (same computation the Flow page uses), so the list reads top-to-bottom
@@ -159,6 +167,29 @@ export default function Puzzles() {
     });
   };
 
+  const openNewTask = (puzzleId) => {
+    setTaskEditing(null);
+    setTaskPuzzleId(puzzleId);
+    setTaskFormOpen(true);
+  };
+  const openEditTask = (t) => {
+    setTaskEditing(t);
+    setTaskPuzzleId(null);
+    setTaskFormOpen(true);
+  };
+  const handleTaskSubmit = (values) => {
+    if (taskEditing) updateTask(taskEditing.id, values);
+    else addTask(room.id, values);
+  };
+  const handleTaskDelete = (t) => {
+    requestConfirm({
+      title: 'Delete to-do',
+      message: `Delete to-do "${t.title}"?`,
+      confirmLabel: 'Delete',
+      onConfirm: () => deleteTask(t.id),
+    });
+  };
+
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
@@ -277,6 +308,36 @@ export default function Puzzles() {
                           ))}
                         </div>
                       )}
+                      {tasksFor(p.id).length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {tasksFor(p.id).map((t) => (
+                            <div key={t.id} className="flex flex-wrap items-center gap-1.5 text-xs">
+                              <ListChecks size={12} className="shrink-0 text-stone-500" />
+                              <button
+                                type="button"
+                                onClick={() => openEditTask(t)}
+                                className={t.status === 'Done' ? 'text-stone-500 line-through hover:underline' : 'text-stone-300 hover:underline'}
+                              >
+                                {t.title}
+                              </button>
+                              <Badge>{t.status}</Badge>
+                              {propName(t.linkedPropId) && (
+                                <span className="rounded-full bg-stone-800 px-2 py-0.5 text-[11px] text-stone-400">
+                                  📦 {propName(t.linkedPropId)}
+                                </span>
+                              )}
+                              <button
+                                type="button"
+                                onClick={() => handleTaskDelete(t)}
+                                title="Delete to-do"
+                                className="rounded p-0.5 text-stone-600 hover:bg-stone-800 hover:text-rose-400"
+                              >
+                                <X size={12} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       {boardsFor(p.id).length > 0 && (
                         <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-stone-500">
                           <LayoutGrid size={12} />
@@ -294,6 +355,9 @@ export default function Puzzles() {
                       )}
                     </div>
                     <div className="flex shrink-0 gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => openNewTask(p.id)} title="Add to-do for this puzzle">
+                        <ListChecks size={14} />
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(p)}>
                         <Pencil size={14} />
                       </Button>
@@ -316,6 +380,16 @@ export default function Puzzles() {
         initial={editing}
         zones={zones}
         otherPuzzles={puzzles.filter((p) => p.id !== editing?.id)}
+      />
+
+      <TaskFormModal
+        open={taskFormOpen}
+        onClose={() => setTaskFormOpen(false)}
+        onSubmit={handleTaskSubmit}
+        initial={taskEditing}
+        defaultLinkedPuzzleId={taskPuzzleId}
+        puzzles={puzzles}
+        props={props}
       />
 
       <ConfirmDialog {...dialogProps} />

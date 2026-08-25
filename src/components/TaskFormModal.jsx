@@ -15,7 +15,7 @@ const BLANK = {
   linkedPropId: '',
 };
 
-export default function TaskFormModal({ open, onClose, onSubmit, initial, puzzles, props }) {
+export default function TaskFormModal({ open, onClose, onSubmit, initial, puzzles, props, defaultLinkedPuzzleId }) {
   const [form, setForm] = useState(BLANK);
 
   useEffect(() => {
@@ -28,10 +28,10 @@ export default function TaskFormModal({ open, onClose, onSubmit, initial, puzzle
               linkedPuzzleId: initial.linkedPuzzleId || '',
               linkedPropId: initial.linkedPropId || '',
             }
-          : BLANK,
+          : { ...BLANK, linkedPuzzleId: defaultLinkedPuzzleId || '' },
       );
     }
-  }, [open, initial]);
+  }, [open, initial, defaultLinkedPuzzleId]);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
