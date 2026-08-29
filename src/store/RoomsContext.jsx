@@ -24,6 +24,7 @@ const TABLE_KEYS = [
   'brainstormIdeas',
   'brainstormConnections',
   'brainstormPaths',
+  'interiorPaths',
 ];
 
 // Merges a realtime change into one collection: upsert-by-id for
@@ -160,6 +161,7 @@ export function RoomsProvider({ children }) {
       brainstormIdeas: d.brainstormIdeas.filter((i) => i.roomId !== id),
       brainstormConnections: d.brainstormConnections.filter((c) => c.roomId !== id),
       brainstormPaths: d.brainstormPaths.filter((p) => p.roomId !== id),
+      interiorPaths: d.interiorPaths.filter((p) => p.roomId !== id),
       version: d.version,
     }));
     // The DB cascades all child rows via ON DELETE CASCADE.
@@ -331,12 +333,17 @@ export function RoomsProvider({ children }) {
       affectedPuzzles.forEach((p) => updateRow('puzzles', p.id, { zoneId: null }));
       affectedProps.forEach((p) => updateRow('props', p.id, { zoneId: null, x: null, y: null, w: null, h: null }));
       affectedBoards.forEach((b) => updateRow('brainstormBoards', b.id, { zoneId: null }));
+      // Interior sketches are only meaningful attached to their zone's floor
+      // plan (unlike props/puzzles, which stay useful elsewhere), so they're
+      // hard-deleted with it rather than just unassigned.
+      d.interiorPaths.filter((p) => p.zoneId === id).forEach((p) => deleteRow('interiorPaths', p.id));
       return {
         ...d,
         zones: d.zones.filter((z) => z.id !== id),
         puzzles: d.puzzles.map((p) => (p.zoneId === id ? { ...p, zoneId: null } : p)),
         props: d.props.map((p) => (p.zoneId === id ? { ...p, zoneId: null, x: null, y: null, w: null, h: null } : p)),
         brainstormBoards: d.brainstormBoards.map((b) => (b.zoneId === id ? { ...b, zoneId: null } : b)),
+        interiorPaths: d.interiorPaths.filter((p) => p.zoneId !== id),
       };
     });
     deleteRow('zones', id);
@@ -553,6 +560,20 @@ export function RoomsProvider({ children }) {
     deleteRow('brainstormPaths', id);
   }, []);
 
+  // ---------- Interior floor plan sketches ----------
+  const addInteriorPath = useCallback((roomId, zoneId, partial) => {
+    const id = makeId();
+    const path = { id, roomId, zoneId, points: '', color: '#e7e5e4', width: 2, ...partial };
+    setData((d) => ({ ...d, interiorPaths: [...d.interiorPaths, path] }));
+    insertRow('interiorPaths', path);
+    return id;
+  }, []);
+
+  const deleteInteriorPath = useCallback((id) => {
+    setData((d) => ({ ...d, interiorPaths: d.interiorPaths.filter((p) => p.id !== id) }));
+    deleteRow('interiorPaths', id);
+  }, []);
+
   const convertIdeaToPuzzle = useCallback((id) => {
     let newPuzzleId = null;
     setData((d) => {
@@ -650,6 +671,8 @@ export function RoomsProvider({ children }) {
       addPath,
       updatePath,
       deletePath,
+      addInteriorPath,
+      deleteInteriorPath,
       convertIdeaToPuzzle,
       exportAll,
       importAll,
@@ -690,6 +713,8 @@ export function RoomsProvider({ children }) {
       addPath,
       updatePath,
       deletePath,
+      addInteriorPath,
+      deleteInteriorPath,
       convertIdeaToPuzzle,
       exportAll,
       importAll,
@@ -765,6 +790,11 @@ export function usePaths(boardId) {
 export function usePropsInZone(zoneId) {
   const { data } = useRooms();
   return useMemo(() => data.props.filter((p) => p.zoneId === zoneId), [data.props, zoneId]);
+}
+
+export function useInteriorPaths(zoneId) {
+  const { data } = useRooms();
+  return useMemo(() => data.interiorPaths.filter((p) => p.zoneId === zoneId), [data.interiorPaths, zoneId]);
 }
 
 export function useRoomProgress(roomId) {

@@ -18,10 +18,16 @@ export default function InteriorItem({ prop, x, y, w, h, onPointerDown, onResize
       onPointerDown={onPointerDown}
     >
       <div
-        className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-md border-2 border-black/30 p-2 text-white shadow-lg"
-        style={{ background: KIND_COLORS[prop.category] || KIND_COLORS.Other }}
+        className="relative flex h-full w-full flex-col justify-between overflow-hidden rounded-md border-2 border-black/30 p-2 text-white shadow-lg bg-cover bg-center"
+        style={{
+          background: KIND_COLORS[prop.category] || KIND_COLORS.Other,
+          backgroundImage: prop.photos?.[0] ? `url(${prop.photos[0].dataUrl})` : undefined,
+        }}
       >
-        <div className="flex items-start justify-between gap-1">
+        {prop.photos?.[0] && (
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-black/50" />
+        )}
+        <div className="relative flex items-start justify-between gap-1">
           <span className="truncate text-[10px] font-bold uppercase tracking-wide text-white/70">{prop.category}</span>
           <div className="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100" data-no-drag>
             <button
@@ -48,7 +54,7 @@ export default function InteriorItem({ prop, x, y, w, h, onPointerDown, onResize
             </button>
           </div>
         </div>
-        <p className="truncate text-xs font-bold leading-tight">{prop.name}</p>
+        <p className="relative truncate text-xs font-bold leading-tight">{prop.name}</p>
       </div>
       <span
         onPointerDown={onResizePointerDown}

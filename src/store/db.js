@@ -26,6 +26,7 @@ const TABLE_KEYS = [
   'brainstormIdeas',
   'brainstormConnections',
   'brainstormPaths',
+  'interiorPaths',
 ];
 
 // Firestore rejects writes containing `undefined` - unlike Postgres, there's

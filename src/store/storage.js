@@ -16,6 +16,7 @@ export const emptyData = () => ({
   brainstormIdeas: [],
   brainstormConnections: [],
   brainstormPaths: [],
+  interiorPaths: [],
 });
 
 // Older saves predate multi-board brainstorms: every idea/connection/path
