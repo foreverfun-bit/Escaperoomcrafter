@@ -67,24 +67,37 @@ export function RoomsProvider({ children }) {
     setSyncError('');
     const localSnapshotAtLoad = dataRef.current;
 
-    Promise.all(TABLE_KEYS.map((key) => fetchAll(key)))
+    // Settled rather than all-or-nothing: one collection erroring (e.g. a
+    // security rule that hasn't been updated yet for a newly added
+    // collection) used to fail every collection's load and lock the whole
+    // app into the offline banner, even though everything else was reaching
+    // the server fine. A failed collection now just loads empty instead of
+    // taking the rest of the app down with it.
+    Promise.allSettled(TABLE_KEYS.map((key) => fetchAll(key)))
       .then((results) => {
         if (cancelled) return;
         const cloudData = { version: 1 };
+        let failures = 0;
         TABLE_KEYS.forEach((key, i) => {
-          cloudData[key] = results[i];
+          const result = results[i];
+          if (result.status === 'fulfilled') {
+            cloudData[key] = result.value;
+          } else {
+            failures += 1;
+            cloudData[key] = [];
+            console.error(`Failed to load "${key}" from the cloud`, result.reason);
+          }
         });
+        if (failures === TABLE_KEYS.length) {
+          const first = results[0];
+          setSyncError(first.reason?.message || first.reason?.error_description || String(first.reason));
+          setSyncState('error');
+          return;
+        }
         const hasLocalOnly = cloudData.rooms.length === 0 && (localSnapshotAtLoad.rooms || []).length > 0;
         if (hasLocalOnly) setLocalBackupSnapshot(localSnapshotAtLoad);
         setData(cloudData);
         setSyncState('ready');
-      })
-      .catch((err) => {
-        console.error('Failed to load cloud data', err);
-        if (!cancelled) {
-          setSyncError(err?.message || err?.error_description || String(err));
-          setSyncState('error');
-        }
       });
 
     const unsubscribe = subscribeAll(user.id, (key, eventType, row) => {
