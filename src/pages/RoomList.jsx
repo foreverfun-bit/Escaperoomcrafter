@@ -61,6 +61,7 @@ export default function RoomList() {
               Can&apos;t reach the server right now - showing your last saved copy. Anything you change here
               stays on this device only until the connection comes back, so reload once it's working again to
               make sure everything's synced.
+              {syncError && <span className="mt-1 block font-mono text-xs text-amber-400/80">{syncError}</span>}
             </span>
           </div>
           <Button onClick={() => window.location.reload()} size="sm" variant="ghost">
