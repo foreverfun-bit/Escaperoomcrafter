@@ -1,3 +1,5 @@
+import { useId } from 'react';
+
 const baseInput =
   'w-full rounded-lg border border-stone-700 bg-stone-950 px-3 py-2 text-sm text-stone-100 placeholder:text-stone-500 outline-none transition-colors focus:border-pink-400 focus:ring-1 focus:ring-pink-400';
 
@@ -40,6 +42,24 @@ export function Select({ label, required, options, className = '', ...props }) {
           </option>
         ))}
       </select>
+    </div>
+  );
+}
+
+// A text field with a dropdown of suggestions, but - unlike Select - never
+// rejects a value that isn't one of them, so a field like puzzle type can
+// suggest the common options while still taking any custom one typed in.
+export function ComboField({ label, required, options, className = '', ...props }) {
+  const listId = useId();
+  return (
+    <div className={className}>
+      <Label label={label} required={required} />
+      <input className={baseInput} list={listId} {...props} />
+      <datalist id={listId}>
+        {options.map((opt) => (
+          <option key={opt} value={opt} />
+        ))}
+      </datalist>
     </div>
   );
 }

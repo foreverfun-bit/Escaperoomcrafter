@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Modal from './ui/Modal.jsx';
 import Button from './ui/Button.jsx';
-import { TextField, TextArea, Select } from './ui/Field.jsx';
+import { TextField, TextArea, Select, ComboField } from './ui/Field.jsx';
 import MultiSelect from './ui/MultiSelect.jsx';
 import HintsEditor from './HintsEditor.jsx';
 import AudioGallery from './ui/AudioGallery.jsx';
@@ -39,6 +39,11 @@ export default function PuzzleFormModal({ open, onClose, onSubmit, initial, zone
   }, [open, initial]);
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  // Suggestions for the type field: the built-in list plus any custom types
+  // already typed on other puzzles in this room, so once someone types a
+  // new one it's easy to reuse consistently rather than retyping variants.
+  const typeOptions = [...new Set([...PUZZLE_TYPES, ...otherPuzzles.map((p) => p.type).filter(Boolean)])];
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -78,7 +83,7 @@ export default function PuzzleFormModal({ open, onClose, onSubmit, initial, zone
           placeholder="What does the player see / interact with?"
         />
         <div className="grid grid-cols-2 gap-3">
-          <Select label="Type" options={PUZZLE_TYPES} value={form.type} onChange={set('type')} />
+          <ComboField label="Type" options={typeOptions} value={form.type} onChange={set('type')} />
           <Select label="Status" options={PUZZLE_STATUSES} value={form.status} onChange={set('status')} />
         </div>
         <Select
