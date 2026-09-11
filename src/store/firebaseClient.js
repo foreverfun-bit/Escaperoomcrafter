@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 // Public by design: this config only identifies the project - actual data
@@ -17,5 +17,11 @@ const firebaseConfig = {
 
 export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Firestore's default transport is a persistent streaming connection
+// (WebChannel), which some networks/carriers silently block or break even
+// though plain HTTPS requests (like sign-in) go through fine - the app then
+// looks permanently "offline" no matter how many times it's reloaded.
+// Forcing long-polling instead trades a little latency for working
+// everywhere plain HTTP works.
+export const db = initializeFirestore(app, { experimentalForceLongPolling: true });
 export const storage = getStorage(app);
