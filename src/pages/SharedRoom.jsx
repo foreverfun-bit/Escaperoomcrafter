@@ -21,9 +21,14 @@ export default function SharedRoom() {
 
   useEffect(() => {
     let cancelled = false;
-    fetchSharedRoom(roomId).then((result) => {
-      if (!cancelled) setData(result);
-    });
+    fetchSharedRoom(roomId)
+      .then((result) => {
+        if (!cancelled) setData(result);
+      })
+      .catch((err) => {
+        console.error('Unexpected error loading shared room', err);
+        if (!cancelled) setData(null);
+      });
     return () => {
       cancelled = true;
     };
