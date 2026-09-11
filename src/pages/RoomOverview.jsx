@@ -1,6 +1,6 @@
 import { useOutletContext, Link } from 'react-router-dom';
 import { useState } from 'react';
-import { Puzzle, Package, ListChecks, DollarSign, Pencil } from 'lucide-react';
+import { Puzzle, Package, ListChecks, DollarSign, Pencil, Share2, Copy, Check } from 'lucide-react';
 import { useRoomProgress, useTasks, useRooms } from '../store/RoomsContext.jsx';
 import { Card, CardBody } from '../components/ui/Card.jsx';
 import ProgressBar from '../components/ui/ProgressBar.jsx';
@@ -15,7 +15,15 @@ export default function RoomOverview() {
   const progress = useRoomProgress(room.id);
   const tasks = useTasks(room.id);
   const [editOpen, setEditOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const photos = room.photos || [];
+  const shareUrl = `${window.location.origin}${import.meta.env.BASE_URL}#/share/${room.id}`;
+
+  const handleCopyLink = async () => {
+    await navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const upcoming = tasks
     .filter((t) => t.status !== 'Done')
@@ -46,6 +54,44 @@ export default function RoomOverview() {
             <span>Difficulty: {room.difficulty}</span>
             <span>Target duration: {room.targetMinutes} min</span>
           </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardBody>
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <Share2 size={14} className="text-stone-500" />
+                <h2 className="text-sm font-semibold text-stone-200">Share this room</h2>
+              </div>
+              <p className="mt-1 text-xs text-stone-500">
+                Anyone with the link can view every tab (puzzles, props, layout, tasks) - no account needed. They
+                can't change anything.
+              </p>
+            </div>
+            <Button
+              variant={room.shared ? 'secondary' : 'primary'}
+              size="sm"
+              onClick={() => updateRoom(room.id, { shared: !room.shared })}
+            >
+              {room.shared ? 'Turn off sharing' : 'Turn on sharing'}
+            </Button>
+          </div>
+          {room.shared && (
+            <div className="mt-3 flex items-center gap-2">
+              <input
+                readOnly
+                value={shareUrl}
+                onFocus={(e) => e.target.select()}
+                className="w-full truncate rounded-lg border border-stone-700 bg-stone-950 px-3 py-1.5 text-xs text-stone-400 outline-none"
+              />
+              <Button variant="ghost" size="sm" onClick={handleCopyLink}>
+                {copied ? <Check size={13} /> : <Copy size={13} />}
+                {copied ? 'Copied' : 'Copy'}
+              </Button>
+            </div>
+          )}
         </CardBody>
       </Card>
 

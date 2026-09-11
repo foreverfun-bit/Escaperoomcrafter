@@ -130,6 +130,7 @@ export function RoomsProvider({ children }) {
         targetMinutes: 60,
         status: 'Concept',
         photos: [],
+        shared: false,
         createdAt: now(),
         updatedAt: now(),
         ...partial,
